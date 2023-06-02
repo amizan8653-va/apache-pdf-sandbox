@@ -8,10 +8,6 @@ import java.util.List;
 public class Row {
     private List<Cell> cells = new ArrayList<>();
     private float height = 0;
-    private int selectedRadio = -1;
-    private List<String> radioValues = new ArrayList<>();
-    private List<PDAnnotationWidget> radioWidgets = new ArrayList<>();
-    private String radioName = "";
     public Row(List<Cell> cells, float height) {
         this.height = height;
         this.cells = cells;
@@ -43,30 +39,6 @@ public class Row {
         return height;
     }
 
-    public void setHeight(float height) {
-        this.height = height;
-    }
-
-    public List<String> getRadioValues() {
-        return radioValues;
-    }
-
-    public void setRadioValues(List<String> radioValues) {
-        this.radioValues = radioValues;
-    }
-
-    public String getRadioName() {
-        return radioName;
-    }
-
-    public void setRadioName(String radioName) {
-        this.radioName = radioName;
-    }
-
-
-    public void setSelectedRadio(int selectedRadio) {
-        this.selectedRadio = selectedRadio;
-    }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
