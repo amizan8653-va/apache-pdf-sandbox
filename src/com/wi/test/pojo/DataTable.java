@@ -21,7 +21,6 @@ public class DataTable {
     }
 
     public void addRow(Row row) {
-        row.setRadioName(row.getRadioName() + " " + this.getId() + " Row " + rows.size());
         this.rows.add(row);
     }
 

@@ -21,11 +21,8 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceCharacteristicsDictionary;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceEntry;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
-import org.apache.pdfbox.pdmodel.interactive.form.PDRadioButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
@@ -36,7 +33,6 @@ import org.apache.xmpbox.xml.XmpSerializer;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.util.*;
 
 public class PDFormBuilder {
@@ -120,8 +116,6 @@ public class PDFormBuilder {
             //Go through each column and draw the cell and any cell's text with given alignment.
             PDStructureElement currentTR = addContentToParent(null, StandardStructureTypes.TR, pages.get(pageIndex), currentTable);
             Row currentRow = table.getRows().get(i);
-            if (!currentRow.getRadioValues().isEmpty())
-                currentRow.setSelectedRadio(new Random().nextInt(currentRow.getRadioValues().size()));
 
             for(int j = 0; j < table.getRows().get(i).getCells().size(); j++) {
 
@@ -236,94 +230,6 @@ public class PDFormBuilder {
         acroForm.getFields().add(fields.get(fields.size() - 1));
     }
 
-    //Add radio buttons at a given location starting from the top-left corner with or without text labels.
-    private PDAnnotationWidget addRadioButton(float x, float y, float width, List<String> values,
-                                              int pageIndex, int valueIndex, int onIndex) throws IOException {
-
-        //Bounding box for the widget.
-        int radioButtonHeight = 20;
-        PDRectangle rect = new PDRectangle(
-                x + valueIndex * (width / values.size()),
-                PAGE_HEIGHT - radioButtonHeight - y,
-                width / values.size(),
-                radioButtonHeight);
-        // Specify a widget associated with the field
-        PDAnnotationWidget widget = new PDAnnotationWidget();
-        widget.setRectangle(rect);
-        widget.setPage(pages.get(pageIndex));
-        widget.setAnnotationName(values.get(valueIndex));
-        widget.setAnnotationFlags(4);
-
-        //Appearance will always default to black border with white background.
-        PDAppearanceCharacteristicsDictionary fieldAppearance
-                = new PDAppearanceCharacteristicsDictionary(new COSDictionary());
-        fieldAppearance.setBorderColour(PDConstants.BLACK);
-        fieldAppearance.setBackground(PDConstants.WHITE);
-        widget.setAppearanceCharacteristics(fieldAppearance);
-
-        COSDictionary apNDict = new COSDictionary();
-        apNDict.setItem(COSName.Off, getAppearanceStream(PDConstants.OFF_N_STRING));
-        apNDict.setItem(values.get(valueIndex), getAppearanceStream(PDConstants.ON_N_STRING));
-
-        //Off state down appearance stream
-        COSDictionary apDDict = new COSDictionary();
-        apDDict.setItem(COSName.Off, getAppearanceStream(PDConstants.OFF_D_STRING));
-        apDDict.setItem(values.get(valueIndex), getAppearanceStream(PDConstants.ON_D_STRING));
-
-        //Add the appearance stream to the widget
-        PDAppearanceDictionary appearance = new PDAppearanceDictionary();
-        PDAppearanceEntry appearanceNEntry = new PDAppearanceEntry(apNDict);
-        appearance.setNormalAppearance(appearanceNEntry);
-        PDAppearanceEntry appearanceDEntry = new PDAppearanceEntry(apDDict);
-        appearance.setDownAppearance(appearanceDEntry);
-        widget.setAppearance(appearance);
-
-        //Turn the first radio button to on state and the rest off.
-        widget.setAppearanceState(valueIndex == onIndex ? values.get(valueIndex) : "Off");
-
-        //Add object reference to widget for tagging purposes.
-        PDObjectReference objectReference = new PDObjectReference();
-        objectReference.setReferencedObject(widget);
-        annotationRefs.add(objectReference);
-        widget.getCOSObject().setInt(COSName.STRUCT_PARENT, currentStructParent);
-        currentStructParent++;
-
-        //Add the widget to the page.
-        widgets.add(widget);
-        pages.get(pageIndex).getAnnotations().add(widgets.get(widgets.size() - 1));
-
-        return widgets.get(widgets.size() - 1);
-    }
-
-    private COSStream getAppearanceStream(String appearanceString) throws IOException {
-        //Set up common COS items
-        COSArray matrix = new COSArray();
-        matrix.add(new COSFloat(1.0f));
-        matrix.add(new COSFloat(0.0f));
-        matrix.add(new COSFloat(0.0f));
-        matrix.add(new COSFloat(1.0f));
-        matrix.add(new COSFloat(0.0f));
-        matrix.add(new COSFloat(0.0f));
-        COSArray filter = new COSArray();
-        filter.add(COSName.FLATE_DECODE);
-        COSDictionary resources = new COSDictionary();
-        COSArray procSet = new COSArray();
-        procSet.add(COSName.getPDFName("PDF"));
-        resources.setItem(COSName.PROC_SET, procSet);
-
-        //Off state normal appearance stream
-        COSStream offNStream = new COSStream();
-        offNStream.setItem(COSName.BBOX, new PDRectangle(10, 20));
-        offNStream.setItem(COSName.FORMTYPE, COSInteger.ONE);
-        offNStream.setItem(COSName.TYPE, COSName.XOBJECT);
-        offNStream.setItem(COSName.SUBTYPE, COSName.FORM);
-        offNStream.setItem(COSName.MATRIX, matrix);
-        offNStream.setItem(COSName.RESOURCES, resources);
-        OutputStream os = offNStream.createOutputStream(filter);
-        os.write(appearanceString.getBytes());
-        os.close();
-        return offNStream;
-    }
 
     private void addWidgetContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
         COSDictionary annotDict = new COSDictionary();
@@ -439,33 +345,6 @@ public class PDFormBuilder {
         kArray.add(COSInteger.get(currentMCID));
         fieldElem.getCOSObject().setItem(COSName.K, kArray);
 
-        //Add a radio button field in the current cell.
-        if (!currentCell.getRbVal().isEmpty() && currentRow.getRadioValues().size() > 0) {
-            currentRow.addRadioWidget(addRadioButton(
-                    cellX - currentRow.getRadioWidgets().size() * 10 + currentCell.getWidth() / 4, cellY,
-                    currentCell.getWidth() * 1.5f,
-                    currentRow.getRadioValues(),
-                    pageIndex,
-                    currentRow.getRadioWidgets().size(),
-                    currentRow.getSelectedRadio()));
-            fieldElem.setAlternateDescription(currentCell.getRbVal() + " Radio Button");
-            addWidgetContent(annotationRefs.get(annotationRefs.size() - 1), fieldElem, StandardStructureTypes.FORM, pageIndex);
-            if (currentRow.getRadioValues().get(currentRow.getRadioValues().size() - 1).equals(currentCell.getRbVal())) {
-                //Create the form field and add it to the acroForm object with a given name.
-                fields.add(new PDRadioButton(acroForm));
-                fields.get(fields.size() - 1).setPartialName(currentRow.getRadioName());
-                fields.get(fields.size() - 1).setAlternateFieldName(currentRow.getRadioName());
-                fields.get(fields.size() - 1).setFieldFlags(49152);
-                //Turn the first radio button to on state and the rest off in the parent radio button object.
-                fields.get(fields.size() - 1).getCOSObject().setName(COSName.V,
-                        currentRow.getRadioValues().get(currentRow.getSelectedRadio()));
-                for (PDAnnotationWidget widget : currentRow.getRadioWidgets()) {
-                    widget.setParent(((PDRadioButton)fields.get(fields.size() - 1)));
-                }
-                ((PDRadioButton)fields.get(fields.size() - 1)).setWidgets(currentRow.getRadioWidgets());
-                acroForm.getFields().add(fields.get(fields.size() - 1));
-            }
-        }
         //Add a text field in the current cell.
         if (!currentCell.getTextVal().isEmpty()) {
             addTextField(cellX, cellY,

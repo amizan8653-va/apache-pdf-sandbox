@@ -12,14 +12,6 @@ public class Row {
     private List<String> radioValues = new ArrayList<>();
     private List<PDAnnotationWidget> radioWidgets = new ArrayList<>();
     private String radioName = "";
-
-    public Row(List<Cell> cells, List<String> radioValues, String radioName, float height) {
-        this.cells = cells;
-        this.height = height;
-        this.radioValues = radioValues;
-        this.radioName = radioName;
-    }
-
     public Row(List<Cell> cells, float height) {
         this.height = height;
         this.cells = cells;
@@ -71,17 +63,6 @@ public class Row {
         this.radioName = radioName;
     }
 
-    public List<PDAnnotationWidget> getRadioWidgets() {
-        return radioWidgets;
-    }
-
-    public void addRadioWidget(PDAnnotationWidget radioWidget) {
-        this.radioWidgets.add(radioWidget);
-    }
-
-    public int getSelectedRadio() {
-        return selectedRadio;
-    }
 
     public void setSelectedRadio(int selectedRadio) {
         this.selectedRadio = selectedRadio;
