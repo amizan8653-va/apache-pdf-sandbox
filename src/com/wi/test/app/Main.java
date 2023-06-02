@@ -29,7 +29,7 @@ public class Main {
             PDFormBuilder formBuilder = new PDFormBuilder(1, "UA EXAMPLE");
             PDStructureElement sec1 = formBuilder.addRoot(0);
             formBuilder.drawElement(
-                    new Cell("PDF HEADER 1", new Color(229, 229, 229),
+                    new Cell("PDF HEADER 1",
                             Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
                     50, 25, 50, sec1, StandardStructureTypes.H1, 0);
             DataTable table1 = new DataTable("Table Summary 1", "Table1");
@@ -50,15 +50,15 @@ public class Main {
             //Hard coded table2
             DataTable table2 = new DataTable("Table Summary 2", "Table2");
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Column \nHeader \n1 (Header)", Color.lightGray, 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(1, "Column", "Table2Column1")),
-                    new Cell("Column \nHeader \n2 (Description)", Color.lightGray, 5, 215, PDConstants.TOP_ALIGN,  new TableCellMarkup(1, "Column", "Table2Column2")),
-                    new Cell("Column \nHeader \n3 (Text)", Color.lightGray, 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(1, "Column", "Table2Column3"))),
+                    new Cell("Column \nHeader \n1 (Header)", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(1, "Column", "Table2Column1")),
+                    new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  new TableCellMarkup(1, "Column", "Table2Column2")),
+                    new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(1, "Column", "Table2Column3"))),
                 30));
             table2.addRow(new Row(Collections.singletonList(
                     new Cell("SECTION HEADER 1", 6, 485, PDConstants.LEFT_ALIGN, new TableCellMarkup(7, "Column", "SECTION1"))),
                 20));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup("Row", new String[]{"Table2Column1"}, "Table2Row1")),
+                    new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column1"}, "Table2Row1")),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
@@ -68,7 +68,7 @@ public class Main {
                     new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column3", "Table2Row1"}))),
                     50));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n2", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup("Row", new String[]{"Table2Column1"}, "Table2Row2")),
+                    new Cell("Row \nHeader \n2", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column1"}, "Table2Row2")),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +

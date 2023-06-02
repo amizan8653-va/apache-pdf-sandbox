@@ -37,19 +37,19 @@ import java.util.*;
 
 public class PDFormBuilder {
 
-    private PDDocument pdf = null;
-    private PDAcroForm acroForm = null;
-    private ArrayList<PDPage> pages = new ArrayList<>();
-    private ArrayList<COSDictionary> annotDicts = new ArrayList<>();
-    private ArrayList<PDObjectReference> annotationRefs = new ArrayList<>();
-    private ArrayList<PDField> fields = new ArrayList<>();
-    private ArrayList<PDAnnotationWidget> widgets = new ArrayList<>();
+    private final PDDocument pdf;
+    private final PDAcroForm acroForm;
+    private final ArrayList<PDPage> pages = new ArrayList<>();
+    private final ArrayList<COSDictionary> annotDicts = new ArrayList<>();
+    private final ArrayList<PDObjectReference> annotationRefs = new ArrayList<>();
+    private final ArrayList<PDField> fields = new ArrayList<>();
+    private final ArrayList<PDAnnotationWidget> widgets = new ArrayList<>();
     private PDFont defaultFont = null;
     private PDStructureElement rootElem = null;
     private PDStructureElement currentElem = null;
     private COSDictionary currentMarkedContentDictionary;
-    private COSArray nums = new COSArray();
-    private COSArray numDictionaries = new COSArray();
+    private final COSArray nums = new COSArray();
+    private final COSArray numDictionaries = new COSArray();
     private int currentMCID = 0;
     private int currentStructParent = 1;
     private final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
@@ -68,7 +68,7 @@ public class PDFormBuilder {
 
     }
 
-    public PDStructureElement drawElement(Cell textCell, float x, float y, float height, PDStructureElement parent,
+    public void drawElement(Cell textCell, float x, float y, float height, PDStructureElement parent,
                                             String structType, int pageIndex) throws IOException {
 
         //Set up the next marked content element with an MCID and create the containing H1 structure element.
@@ -96,7 +96,7 @@ public class PDFormBuilder {
         contents.endMarkedContent();
         addContentToParent(COSName.P, null, pages.get(pageIndex), currentElem);
         contents.close();
-        return currentElem;
+//        return currentElem;
     }
 
     //Given a DataTable will draw each cell and any given text.
@@ -124,7 +124,7 @@ public class PDFormBuilder {
                 float cellY = y + table.getRowPosition(i);
                 addTableCellMarkup(currentCell, pageIndex, currentTR);
                 drawCellContents(pageIndex, currentRow, currentCell, cellX, cellY);
-                if (!currentCell.getRbVal().isEmpty() || !currentCell.getTextVal().isEmpty()) {
+                if (!currentCell.getTextVal().isEmpty()) {
                     if (!currentCell.getTextVal().isEmpty()) {
                         currentCell.setTextVal(currentCell.getTextVal() + " " + table.getId() + " Row " + (i + 1) + " Text Box");
                     }
@@ -296,20 +296,20 @@ public class PDFormBuilder {
         switch (currentCell.getAlign()) {
             case PDConstants.CENTER_ALIGN:
                 drawCellText(currentCell,
-                        cellX + currentCell.getWidth() / 2 - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
-                        cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4,
+                        cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
+                        cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
                         contents);
                 break;
             case PDConstants.TOP_ALIGN:
                 drawCellText(currentCell,
                         cellX + 5,
-                        cellY + currentCell.getFontSize() / 4 + 5,
+                        cellY + currentCell.getFontSize() / 4.0f + 5,
                         contents);
                 break;
             case PDConstants.LEFT_ALIGN:
                 drawCellText(currentCell,
                         cellX + 5,
-                        cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4,
+                        cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
                         contents);
                 break;
         }
@@ -319,8 +319,6 @@ public class PDFormBuilder {
         addContentToParent(COSName.P, null, pages.get(pageIndex), currentElem);
         contents.close();
     }
-
-
 
     //Add text at a given location starting from the top-left corner.
     private void drawCellText(Cell cell, float x, float y, PDPageContentStream contents) throws IOException {
@@ -467,5 +465,4 @@ public class PDFormBuilder {
         pdf.getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
     }
-
 }

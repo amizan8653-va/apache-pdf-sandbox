@@ -5,17 +5,11 @@ import java.util.List;
 
 public class DataTable {
 
-    private List<Row> rows = new ArrayList<>();
-    private String summary = "";
-    private String id = "";
+    private final List<Row> rows = new ArrayList<>();
+    private final String summary;
+    private final String id;
 
     public DataTable(String summary, String id) {
-        this.summary = summary;
-        this.id = id;
-    }
-
-    public DataTable(List<Row> rows, String summary, String id) {
-        this.rows = rows;
         this.summary = summary;
         this.id = id;
     }
@@ -40,24 +34,12 @@ public class DataTable {
         return rows;
     }
 
-    public void setRows(List<Row> rows) {
-        this.rows = rows;
-    }
-
     public String getSummary() {
         return summary;
     }
 
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
-
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String toString() {

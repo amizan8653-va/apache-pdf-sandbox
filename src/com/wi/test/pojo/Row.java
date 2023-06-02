@@ -1,30 +1,17 @@
 package com.wi.test.pojo;
 
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class Row {
-    private List<Cell> cells = new ArrayList<>();
-    private float height = 0;
+    private final List<Cell> cells;
+    private final float height;
     public Row(List<Cell> cells, float height) {
         this.height = height;
         this.cells = cells;
     }
 
-    public Row() { }
-
-    public void addCell(Cell cell) {
-        cells.add(cell);
-    }
-
     public List<Cell> getCells() {
         return cells;
-    }
-
-    public void setCells(List<Cell> cells) {
-        this.cells = cells;
     }
 
     public float getCellPosition(int cellIndex) {

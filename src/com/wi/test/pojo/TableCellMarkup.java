@@ -2,12 +2,12 @@ package com.wi.test.pojo;
 
 public class TableCellMarkup {
 
-    private boolean header;
-    private String id;
-    private String scope;
-    private String[] headers;
-    private int rowSpan;
-    private int colspan;
+    private final boolean header;
+    private final String id;
+    private final String scope;
+    private final String[] headers;
+    private final int rowSpan;
+    private final int colspan;
 
     public TableCellMarkup() {
         this.scope = "";
@@ -54,59 +54,28 @@ public class TableCellMarkup {
         this.headers = headers;
     }
 
-    public TableCellMarkup(String scope, String[] headers, String id) {
-        this.scope = "";
-        this.id = id;
-        this.header = true;
-        this.colspan = 1;
-        this.headers = headers;
-    }
-
     public boolean isHeader() {
         return header;
-    }
-
-    public void setHeader(boolean header) {
-        this.header = header;
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getScope() {
         return scope;
     }
-
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
     public String[] getHeaders() {
         return headers;
-    }
-
-    public void setHeaders(String[] headers) {
-        this.headers = headers;
     }
 
     public int getRowSpan() {
         return rowSpan;
     }
 
-    public void setRowSpan(int rowSpan) {
-        this.rowSpan = rowSpan;
-    }
 
     public int getColspan() {
         return colspan;
     }
 
-    public void setColspan(int colspan) {
-        this.colspan = colspan;
-    }
 }
