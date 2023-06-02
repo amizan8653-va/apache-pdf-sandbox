@@ -162,11 +162,6 @@ public class Main {
                     new Cell("", 5, 100, PDConstants.TOP_ALIGN, "", "Table2", new TableCellMarkup(new String[]{"Table2Column5", "Table2Row3"}))),
                     Arrays.asList("Yes", "No", "N/A"), "Table2", 140));
             formBuilder.drawDataTable(table2, 50, 310, 0, sec1);
-            PDStructureElement textDiv = formBuilder.drawElement(
-                    new Cell("GENERAL COMMENT(S):", Color.WHITE, Color.BLACK, 6, 200, PDConstants.LEFT_ALIGN),
-                    50, 620, 15, sec1, StandardStructureTypes.P, 0);
-            formBuilder.addTextArea(textDiv, 40, 645, formBuilder.PAGE_WIDTH - 80,
-                    150, "GENERAL COMMENTS", 0);
             formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
         } catch (IOException | TransformerException | XmpSchemaException ex) {

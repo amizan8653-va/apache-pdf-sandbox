@@ -81,9 +81,8 @@ public class PDFormBuilder {
         currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
         setNextMarkedContentDictionary();
         contents.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
-
-        //Draws the cell itself with the given colors and location.
-        drawDataCell(textCell, x, y + height, height / 2, contents);
+        // originally a cell coloring thing was here. weird why that would be considered marked content.
+        // or maybe the stuff from earlier with adding content to parent is sufficient.
         contents.endMarkedContent();
         addContentToParent(COSName.ARTIFACT, null, pages.get(pageIndex), currentElem);
         contents.close();
@@ -102,17 +101,6 @@ public class PDFormBuilder {
         addContentToParent(COSName.P, null, pages.get(pageIndex), currentElem);
         contents.close();
         return currentElem;
-    }
-
-    public void addTextArea(PDStructureElement parent, float x, float y, float width, float height,
-                            String name, int pageIndex) throws IOException{
-        PDStructureElement fieldElem = new PDStructureElement(StandardStructureTypes.FORM, parent);
-        addTextField(x, y, width, height, name, pageIndex);
-        fieldElem.setPage(pages.get(pageIndex));
-        COSArray kArray = new COSArray();
-        kArray.add(COSInteger.get(currentMCID));
-        fieldElem.getCOSObject().setItem(COSName.K, kArray);
-        addWidgetContent(annotationRefs.get(annotationRefs.size() - 1), fieldElem, StandardStructureTypes.FORM, pageIndex);
     }
 
     //Given a DataTable will draw each cell and any given text.
@@ -389,7 +377,6 @@ public class PDFormBuilder {
                 pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
         contents.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
-        drawDataCell(currentCell, cellX, cellY, currentRow.getHeight(), contents);
         contents.endMarkedContent();
         currentElem = addContentToParent(COSName.ARTIFACT, StandardStructureTypes.P, pages.get(pageIndex), currentElem);
         currentElem.setAlternateDescription(currentCell.getText());
@@ -427,14 +414,7 @@ public class PDFormBuilder {
         contents.close();
     }
 
-    //Add a rectangle at a given location starting from the top-left corner.
-    private void drawDataCell(Cell tableCell, float x, float y, float height, PDPageContentStream contents) throws IOException{
-        //Open up a stream to draw a bordered rectangle.
-        contents.setNonStrokingColor(tableCell.getCellColor());
-        contents.setStrokingColor(tableCell.getBorderColor());
-        contents.addRect(x, PAGE_HEIGHT - height - y, tableCell.getWidth(), height);
-        contents.fillAndStroke();
-    }
+
 
     //Add text at a given location starting from the top-left corner.
     private void drawCellText(Cell cell, float x, float y, PDPageContentStream contents) throws IOException {
@@ -549,22 +529,6 @@ public class PDFormBuilder {
         documentCatalog.getCOSObject().setName(COSName.PAGE_LAYOUT, "OneColumn");
         documentCatalog.setAcroForm(acroForm);
         PDStructureTreeRoot structureTreeRoot = new PDStructureTreeRoot();
-        HashMap<String, String> roleMap = new HashMap<>();
-        roleMap.put("Annotation", "Span");
-        roleMap.put("Artifact", "P");
-        roleMap.put("Bibliography", "BibEntry");
-        roleMap.put("Chart", "Figure");
-        roleMap.put("Diagram", "Figure");
-        roleMap.put("DropCap", "Figure");
-        roleMap.put("EndNote", "Note");
-        roleMap.put("FootNote", "Note");
-        roleMap.put("InlineShape", "Figure");
-        roleMap.put("Outline", "Span");
-        roleMap.put("Strikeout", "Span");
-        roleMap.put("Subscript", "Span");
-        roleMap.put("Superscript", "Span");
-        roleMap.put("Underline", "Span");
-        structureTreeRoot.setRoleMap(roleMap);
         documentCatalog.setStructureTreeRoot(structureTreeRoot);
         PDMarkInfo markInfo = new PDMarkInfo();
         markInfo.setMarked(true);
