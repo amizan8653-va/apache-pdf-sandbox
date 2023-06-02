@@ -45,26 +45,7 @@ public class Main {
                     new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row3")),
                     new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row3"}))),
                     15));
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 4(Yes/No):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row4")),
-                    new Cell("No", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row4"}))),
-                    15));
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 5(ID):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row5")),
-                    new Cell("99948", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row5"}))),
-                    15));
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 6(List):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row6")),
-                    new Cell("Received Date 5/15/2016, Transaction Id: 1234567", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row6"}))),
-                    15));
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 7(Date):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row7")),
-                    new Cell("12/31/2015", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row7"}))),
-                    15));
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 8(List):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row8")),
-                    new Cell("Process Date 5/16/2016, Employee Id: 1234567", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row8"}))),
-                    15));
+
             table1.addRow(new Row(Arrays.asList(
                     new Cell("Row Header 9(Input):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row9")),
                     new Cell("", 5, 300, PDConstants.LEFT_ALIGN, "Row Header 9", new TableCellMarkup(new String[]{"Table1Row9"}))),
@@ -135,32 +116,6 @@ public class Main {
                     new Cell("", 5, 20, PDConstants.TOP_ALIGN, "N/A", "", new TableCellMarkup(new String[]{"Table2Column4", "Table2Row2", "N/A"})),
                     new Cell("", 5, 100, PDConstants.TOP_ALIGN, "", "Table2", new TableCellMarkup(new String[]{"Table2Column5", "Table2Row2"}))),
                     Arrays.asList("Yes", "No", "N/A"), "Table2", 40));
-            table2.addRow(new Row(Collections.singletonList(
-                    new Cell("SECTION HEADER 2", 5, 485, PDConstants.TOP_ALIGN, new TableCellMarkup(7, "Column", "SECTION2"))),
-                    Collections.emptyList(), "", 10));
-            table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n3", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup("Row", new String[]{"Table2Column1"}, "Table2Row3")),
-                    new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "Goodbye.",
-                            5, 215, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column2", "Table2Row3"})),
-                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column3", "Table2Row3"})),
-                    new Cell("", 5, 20, PDConstants.TOP_ALIGN, "Yes", "",  new TableCellMarkup(new String[]{"Table2Column4", "Table2Row3", "Yes"})),
-                    new Cell("", 5, 20, PDConstants.TOP_ALIGN, "No", "",  new TableCellMarkup(new String[]{"Table2Column4", "Table2Row3", "No"})),
-                    new Cell("", 5, 20, PDConstants.TOP_ALIGN, "N/A", "", new TableCellMarkup(new String[]{"Table2Column4", "Table2Row3", "N/A"})),
-                    new Cell("", 5, 100, PDConstants.TOP_ALIGN, "", "Table2", new TableCellMarkup(new String[]{"Table2Column5", "Table2Row3"}))),
-                    Arrays.asList("Yes", "No", "N/A"), "Table2", 140));
             formBuilder.drawDataTable(table2, 50, 310, 0, sec1);
             formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
