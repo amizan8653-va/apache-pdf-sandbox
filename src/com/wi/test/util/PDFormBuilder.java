@@ -8,7 +8,6 @@ import org.apache.pdfbox.cos.*;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.*;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
@@ -34,7 +33,6 @@ public class PDFormBuilder {
 
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
-    private final ArrayList<COSDictionary> annotDicts = new ArrayList<>();
     private PDFont defaultFont = null;
     private PDStructureElement rootElem = null;
     private PDStructureElement currentElem = null;
@@ -42,7 +40,6 @@ public class PDFormBuilder {
     private final COSArray nums = new COSArray();
     private final COSArray numDictionaries = new COSArray();
     private int currentMCID = 0;
-    private int currentStructParent = 1;
     private final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
     public final float PAGE_WIDTH = PDRectangle.A4.getWidth();
 
@@ -58,7 +55,7 @@ public class PDFormBuilder {
 
     }
 
-    public void drawElement(Cell textCell, float x, float y, float height, PDStructureElement parent,
+    public PDStructureElement drawElement(Cell textCell, float x, float y, float height, PDStructureElement parent,
                                             String structType, int pageIndex) throws IOException {
 
         //Set up the next marked content element with an MCID and create the containing H1 structure element.
@@ -86,7 +83,7 @@ public class PDFormBuilder {
         contents.endMarkedContent();
         addContentToParent(COSName.P, null, pages.get(pageIndex), currentElem);
         contents.close();
-//        return currentElem;
+        return currentElem;
     }
 
     //Given a DataTable will draw each cell and any given text.
@@ -355,12 +352,9 @@ public class PDFormBuilder {
     private void addParentTree() {
         COSDictionary dict = new COSDictionary();
         nums.add(numDictionaries);
-        for (int i = 1; i < currentStructParent; i++) {
-            nums.add(COSInteger.get(i));
-            nums.add(annotDicts.get(i - 1));
-        }
         dict.setItem(COSName.NUMS, nums);
         PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
+        int currentStructParent = 1;
         pdf.getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(currentStructParent);
         pdf.getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
