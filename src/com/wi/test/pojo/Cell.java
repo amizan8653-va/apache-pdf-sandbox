@@ -8,15 +8,15 @@ public class Cell {
     private final String text;
     private final String align;
     private final Color textColor;
-    private final TableCellMarkup cellMarkup;
+    private final boolean header;
 
-    public Cell(String text, int fontSize, float width, String align, TableCellMarkup cellMarkup) {
+    public Cell(String text, int fontSize, float width, String align, boolean header) {
         this.text = text;
         this.fontSize = fontSize;
         this.textColor = Color.black;
         this.width = width;
         this.align = align;
-        this.cellMarkup = cellMarkup;
+        this.header = header;
     }
 
     public Cell(String text, Color textColor, int fontSize, float width, String align) {
@@ -25,7 +25,7 @@ public class Cell {
         this.textColor = textColor;
         this.width = width;
         this.align = align;
-        this.cellMarkup = new TableCellMarkup();
+        this.header = false;
     }
 
     public String getAlign() {
@@ -49,8 +49,9 @@ public class Cell {
         return width;
     }
 
-    public TableCellMarkup getCellMarkup() {
-        return cellMarkup;
+
+    public boolean isHeader() {
+        return header;
     }
 
 }

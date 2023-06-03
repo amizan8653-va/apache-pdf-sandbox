@@ -100,7 +100,7 @@ public class CustomTaggedPdfBuilder {
                 Cell currentCell = table.getCell(i, j);
                 float cellX = x + currentRow.getCellPosition(j);
                 float cellY = y + table.getRowPosition(i);
-                addTableCellMarkup(currentCell, pageIndex, currentTR);
+                addTableCellParentTag(currentCell, pageIndex, currentTR);
                 drawCellContents(pageIndex, currentRow, currentCell, cellX, cellY);
             }
 
@@ -159,18 +159,11 @@ public class CustomTaggedPdfBuilder {
         return structureElement;
     }
 
-    private void addTableCellMarkup(Cell cell, int pageIndex, PDStructureElement currentRow) {
+    private void addTableCellParentTag(Cell cell, int pageIndex, PDStructureElement currentRow) {
         COSDictionary cellAttr = new COSDictionary();
         cellAttr.setName(COSName.O, "Table");
-        if (cell.getCellMarkup().isHeader()) {
-            currentElem = addContentToParent(null, StandardStructureTypes.TH, pages.get(pageIndex), currentRow);
-            currentElem.getCOSObject().setString(COSName.ID, cell.getCellMarkup().getId());
-            if (cell.getCellMarkup().getScope().length() > 0) {
-                cellAttr.setName(COSName.getPDFName("Scope"), cell.getCellMarkup().getScope());
-            }
-        } else {
-            currentElem = addContentToParent(null, StandardStructureTypes.TD, pages.get(pageIndex), currentRow);
-        }
+        String structureType = cell.isHeader() ? StandardStructureTypes.TH : StandardStructureTypes.TD;
+        currentElem = addContentToParent(null, structureType, pages.get(pageIndex), currentRow);
         currentElem.getCOSObject().setItem(COSName.A, cellAttr);
     }
 

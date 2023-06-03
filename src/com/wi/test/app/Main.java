@@ -1,7 +1,6 @@
 package com.wi.test.app;
 
 import com.wi.test.constants.PDConstants;
-import com.wi.test.pojo.TableCellMarkup;
 import com.wi.test.util.CustomTaggedPdfBuilder;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
@@ -33,44 +32,44 @@ public class Main {
                     50, 25, 50, sec1, StandardStructureTypes.H1, 0);
             DataTable table1 = new DataTable("Table Summary 1");
             table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  new TableCellMarkup("Row", "Table1Row1")),
-                    new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup())),
+                    new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  true),
+                    new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, false)),
                     15));
             table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, new TableCellMarkup("Row", "Table1Row2")),
-                    new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup())),
+                    new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, true),
+                    new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, false)),
                     15));
             table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, new TableCellMarkup("Row", "Table1Row3")),
-                    new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup())),
+                    new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, true),
+                    new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, false)),
                     15));
             formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
 
             //Hard coded table2
             DataTable table2 = new DataTable("Table Summary 2");
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Column \nHeader \n1 (Header)", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup("Column", "Table2Column1")),
-                    new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  new TableCellMarkup("Column", "Table2Column2")),
-                    new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup("Column", "Table2Column3"))),
+                    new Cell("Column \nHeader \n1 (Header)", 5, 35, PDConstants.TOP_ALIGN, true),
+                    new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  true),
+                    new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, true)),
                 30));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup()),
+                    new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, false),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "Goodbye.",
-                            5, 215, PDConstants.TOP_ALIGN, new TableCellMarkup()),
-                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup())),
+                            5, 215, PDConstants.TOP_ALIGN, false),
+                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, false)),
                     50));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n2", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup()),
+                    new Cell("Row \nHeader \n2", 5, 35, PDConstants.TOP_ALIGN, false),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "Goodbye.",
-                            5, 215, PDConstants.TOP_ALIGN, new TableCellMarkup()),
-                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup())),
+                            5, 215, PDConstants.TOP_ALIGN, false),
+                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, false)),
 
                     40));
             formBuilder.drawDataTable(table2, 50, 310, 0, sec1);
