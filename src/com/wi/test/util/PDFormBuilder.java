@@ -19,11 +19,6 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceCharacteristicsDictionary;
-import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
-import org.apache.pdfbox.pdmodel.interactive.form.PDField;
-import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
@@ -38,12 +33,8 @@ import java.util.*;
 public class PDFormBuilder {
 
     private final PDDocument pdf;
-    private final PDAcroForm acroForm;
     private final ArrayList<PDPage> pages = new ArrayList<>();
     private final ArrayList<COSDictionary> annotDicts = new ArrayList<>();
-    private final ArrayList<PDObjectReference> annotationRefs = new ArrayList<>();
-    private final ArrayList<PDField> fields = new ArrayList<>();
-    private final ArrayList<PDAnnotationWidget> widgets = new ArrayList<>();
     private PDFont defaultFont = null;
     private PDStructureElement rootElem = null;
     private PDStructureElement currentElem = null;
@@ -59,7 +50,6 @@ public class PDFormBuilder {
 
         //Setup new document
         pdf = new PDDocument();
-        acroForm = new PDAcroForm(pdf);
         pdf.getDocumentInformation().setTitle(title);
         PDResources resources = setupAcroForm();
         addXMPMetadata(title);
@@ -124,13 +114,6 @@ public class PDFormBuilder {
                 float cellY = y + table.getRowPosition(i);
                 addTableCellMarkup(currentCell, pageIndex, currentTR);
                 drawCellContents(pageIndex, currentRow, currentCell, cellX, cellY);
-                if (!currentCell.getTextVal().isEmpty()) {
-                    if (!currentCell.getTextVal().isEmpty()) {
-                        currentCell.setTextVal(currentCell.getTextVal() + " " + table.getId() + " Row " + (i + 1) + " Text Box");
-                    }
-                    drawCellWidget(pageIndex, currentRow, currentCell, cellX, cellY);
-                }
-
             }
 
         }
@@ -191,43 +174,6 @@ public class PDFormBuilder {
             parent.appendKid(structureElement);
         }
         return structureElement;
-    }
-
-    //Add a text box at a given location starting from the top-left corner.
-    private void addTextField(float x, float y, float width, float height, String name, int pageIndex) throws IOException {
-
-        PDRectangle rect = new PDRectangle(x, PAGE_HEIGHT - height - y, width, height);
-
-        //Create the form field and add it to the acroForm object with a given name.
-        fields.add(new PDTextField(acroForm));
-        fields.get(fields.size() - 1).setPartialName(name);
-        fields.get(fields.size() - 1).setAlternateFieldName(name);
-        ((PDTextField)fields.get(fields.size() - 1)).setMultiline(true);
-
-        // Specify a widget associated with the field.
-        PDAnnotationWidget widget = new PDAnnotationWidget();
-        PDAppearanceCharacteristicsDictionary fieldAppearance
-                = new PDAppearanceCharacteristicsDictionary(new COSDictionary());
-        fieldAppearance.setBorderColour(PDConstants.BLACK);
-        fieldAppearance.setBackground(PDConstants.WHITE);
-        widget.setAppearanceCharacteristics(fieldAppearance);
-        widget.setPage(pages.get(pageIndex));
-        widget.setAnnotationName(name);
-        widget.setParent(((PDTextField)fields.get(fields.size() - 1)));
-        widget.setRectangle(rect);
-
-        //Add object reference to widget for tagging purposes.
-        PDObjectReference objectReference = new PDObjectReference();
-        objectReference.setReferencedObject(widget);
-        annotationRefs.add(objectReference);
-        widget.getCOSObject().setInt(COSName.STRUCT_PARENT, currentStructParent);
-        currentStructParent++;
-
-        //Add the widget to the page.
-        widgets.add(widget);
-        pages.get(pageIndex).getAnnotations().add(widgets.get(widgets.size() - 1));
-        ((PDTextField)fields.get(fields.size() - 1)).setWidgets(Collections.singletonList(widgets.get(widgets.size() - 1)));
-        acroForm.getFields().add(fields.get(fields.size() - 1));
     }
 
 
@@ -335,27 +281,6 @@ public class PDFormBuilder {
         contents.endText();
     }
 
-    private void drawCellWidget(int pageIndex, Row currentRow, Cell currentCell, float cellX, float cellY) throws IOException {
-
-        PDStructureElement fieldElem = new PDStructureElement(StandardStructureTypes.FORM, currentElem);
-        fieldElem.setPage(pages.get(pageIndex));
-        COSArray kArray = new COSArray();
-        kArray.add(COSInteger.get(currentMCID));
-        fieldElem.getCOSObject().setItem(COSName.K, kArray);
-
-        //Add a text field in the current cell.
-        if (!currentCell.getTextVal().isEmpty()) {
-            addTextField(cellX, cellY,
-                    currentCell.getWidth(),
-                    currentRow.getHeight(),
-                    currentCell.getTextVal(),
-                    pageIndex);
-            fieldElem.setAlternateDescription(currentCell.getTextVal());
-            addWidgetContent(annotationRefs.get(annotationRefs.size() - 1), fieldElem, StandardStructureTypes.FORM, pageIndex);
-        }
-
-    }
-
     //Assign an id for the next marked content element.
     private void setNextMarkedContentDictionary() {
         currentMarkedContentDictionary = new COSDictionary();
@@ -404,7 +329,6 @@ public class PDFormBuilder {
         documentCatalog.getViewerPreferences().setDisplayDocTitle(true);
         documentCatalog.getCOSObject().setString(COSName.LANG, "EN-US");
         documentCatalog.getCOSObject().setName(COSName.PAGE_LAYOUT, "OneColumn");
-        documentCatalog.setAcroForm(acroForm);
         PDStructureTreeRoot structureTreeRoot = new PDStructureTreeRoot();
         documentCatalog.setStructureTreeRoot(structureTreeRoot);
         PDMarkInfo markInfo = new PDMarkInfo();
@@ -418,11 +342,6 @@ public class PDFormBuilder {
         defaultFont = PDType0Font.load(pdf,
                 new PDTrueTypeFont(PDType1Font.HELVETICA.getCOSObject()).getTrueTypeFont(), true);
         resources.put(COSName.getPDFName("Helv"), defaultFont);
-        acroForm.setNeedAppearances(true);
-        acroForm.setXFA(null);
-        acroForm.setFields(Collections.emptyList());
-        acroForm.setDefaultResources(resources);
-        acroForm.setDefaultAppearance("/Helv 10 Tf 0 g");
         return resources;
     }
 
