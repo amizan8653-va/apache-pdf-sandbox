@@ -126,36 +126,31 @@ public class PDFormBuilder {
 
 
     //Add a structure element to a parent structure element with optional marked content given a non-null name param.
-    private PDStructureElement addContentToParent(COSName name, String type, PDPage currentPage, PDStructureElement parent) {
+    private PDStructureElement addContentToParent(COSName markedName, String structureType, PDPage currentPage, PDStructureElement parent) {
         //Create a structure element and add it to the current section.
         PDStructureElement structureElement = null;
-        if (type != null) {
-            structureElement = new PDStructureElement(type, parent);
+        if (structureType != null) {
+            structureElement = new PDStructureElement(structureType, parent);
             structureElement.setPage(currentPage);
         }
         //If COSName is not null then there is marked content.
-        if (name != null) {
+        if (markedName != null) {
             //numDict for parent tree
             COSDictionary numDict = new COSDictionary();
             numDict.setInt(COSName.K, currentMCID - 1);
             numDict.setString(COSName.LANG, "EN-US");
             numDict.setItem(COSName.PG, currentPage.getCOSObject());
-            if (structureElement != null) {
-                if (!COSName.ARTIFACT.equals(name)) {
-                    structureElement.appendKid(new PDMarkedContent(name, currentMarkedContentDictionary));
-                } else {
-                    structureElement.appendKid(new PDArtifactMarkedContent(currentMarkedContentDictionary));
-                }
-                numDict.setItem(COSName.P, structureElement.getCOSObject());
-            } else {
-                if (!COSName.ARTIFACT.equals(name)) {
-                    parent.appendKid(new PDMarkedContent(name, currentMarkedContentDictionary));
-                } else {
-                    parent.appendKid(new PDArtifactMarkedContent(currentMarkedContentDictionary));
-                }
-                numDict.setItem(COSName.P, parent.getCOSObject());
-            }
-            numDict.setName(COSName.S, name.getName());
+
+            PDMarkedContent markedContent = COSName.ARTIFACT.equals(markedName)
+                ? new PDArtifactMarkedContent(currentMarkedContentDictionary)
+                : new PDMarkedContent(markedName, currentMarkedContentDictionary);
+
+            PDStructureElement elementToAppendTo = Optional.ofNullable(structureElement).orElse(parent);
+
+            elementToAppendTo.appendKid(markedContent);
+            numDict.setItem(COSName.P, elementToAppendTo.getCOSObject());
+
+            numDict.setName(COSName.S, markedName.getName());
             numDictionaries.add(numDict);
         }
         if (structureElement != null) {
@@ -201,7 +196,7 @@ public class PDFormBuilder {
         currentElem.setAlternateDescription(currentCell.getText());
         contents.close();
 
-        //Draw the cell's text with a given alignment
+        //Draw the cell's text with a given alignment, and tag it.
         contents = new PDPageContentStream(
                 pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
