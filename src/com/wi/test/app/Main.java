@@ -2,7 +2,7 @@ package com.wi.test.app;
 
 import com.wi.test.constants.PDConstants;
 import com.wi.test.pojo.TableCellMarkup;
-import com.wi.test.util.PDFormBuilder;
+import com.wi.test.util.CustomTaggedPdfBuilder;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
 import com.wi.test.pojo.Row;
@@ -15,7 +15,6 @@ import java.awt.Color;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 
 public class Main {
@@ -26,7 +25,7 @@ public class Main {
         try {
 
             //Hard coded table1
-            PDFormBuilder formBuilder = new PDFormBuilder(1, "UA EXAMPLE");
+            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder(1, "UA EXAMPLE");
             PDStructureElement sec1 = formBuilder.addRoot(0);
             formBuilder.drawElement(
                     new Cell("PDF HEADER 1",
@@ -54,9 +53,6 @@ public class Main {
                     new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  new TableCellMarkup(1, "Column", "Table2Column2")),
                     new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(1, "Column", "Table2Column3"))),
                 30));
-            table2.addRow(new Row(Collections.singletonList(
-                    new Cell("SECTION HEADER 1", 6, 485, PDConstants.LEFT_ALIGN, new TableCellMarkup(7, "Column", "SECTION1"))),
-                20));
             table2.addRow(new Row(Arrays.asList(
                     new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column1"}, "Table2Row1")),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +

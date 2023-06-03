@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
-public class PDFormBuilder {
+public class CustomTaggedPdfBuilder {
 
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
@@ -43,7 +43,7 @@ public class PDFormBuilder {
     private final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
     public final float PAGE_WIDTH = PDRectangle.A4.getWidth();
 
-    public PDFormBuilder(int initPages, String title) throws IOException, TransformerException, XmpSchemaException {
+    public CustomTaggedPdfBuilder(int initPages, String title) throws IOException, TransformerException, XmpSchemaException {
 
         //Setup new document
         pdf = new PDDocument();
@@ -188,16 +188,9 @@ public class PDFormBuilder {
     }
 
     private void drawCellContents(int pageIndex, Row currentRow, Cell currentCell, float cellX, float cellY) throws IOException {
-        //Set up the next marked content element with an MCID and create the containing TH or TD structure element.
-        PDPageContentStream contents = new PDPageContentStream(
-                pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
-        currentElem = addContentToParent(COSName.ARTIFACT, StandardStructureTypes.P, pages.get(pageIndex), currentElem);
-        currentElem.setAlternateDescription(currentCell.getText());
-        contents.close();
-
         //Draw the cell's text with a given alignment, and tag it.
-        contents = new PDPageContentStream(
+        PDPageContentStream contents = new PDPageContentStream(
                 pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
