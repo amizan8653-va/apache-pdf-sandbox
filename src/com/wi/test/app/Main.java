@@ -31,7 +31,7 @@ public class Main {
                     new Cell("PDF HEADER 1",
                             Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
                     50, 25, 50, sec1, StandardStructureTypes.H1, 0);
-            DataTable table1 = new DataTable("Table Summary 1", "Table1");
+            DataTable table1 = new DataTable("Table Summary 1");
             table1.addRow(new Row(Arrays.asList(
                     new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  new TableCellMarkup("Row", "Table1Row1")),
                     new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup(new String[]{"Table1Row1"}))),
@@ -47,7 +47,7 @@ public class Main {
             formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
 
             //Hard coded table2
-            DataTable table2 = new DataTable("Table Summary 2", "Table2");
+            DataTable table2 = new DataTable("Table Summary 2");
             table2.addRow(new Row(Arrays.asList(
                     new Cell("Column \nHeader \n1 (Header)", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup("Column", "Table2Column1")),
                     new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  new TableCellMarkup("Column", "Table2Column2")),
