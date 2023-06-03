@@ -58,14 +58,11 @@ public class PDFormBuilder {
     public PDStructureElement drawElement(Cell textCell, float x, float y, float height, PDStructureElement parent,
                                             String structType, int pageIndex) throws IOException {
 
-        //Set up the next marked content element with an MCID and create the containing H1 structure element.
-        PDPageContentStream contents = new PDPageContentStream(
-                pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
-        contents.close();
+
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
-        contents = new PDPageContentStream(
+        PDPageContentStream contents = new PDPageContentStream(
                 pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
