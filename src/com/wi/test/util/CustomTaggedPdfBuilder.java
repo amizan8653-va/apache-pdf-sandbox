@@ -168,12 +168,6 @@ public class CustomTaggedPdfBuilder {
             if (cell.getCellMarkup().getScope().length() > 0) {
                 cellAttr.setName(COSName.getPDFName("Scope"), cell.getCellMarkup().getScope());
             }
-            if (cell.getCellMarkup().getColspan() > 1) {
-                cellAttr.setInt(COSName.getPDFName("ColSpan"), cell.getCellMarkup().getColspan());
-            }
-            if (cell.getCellMarkup().getRowSpan() > 1) {
-                cellAttr.setInt(COSName.getPDFName("RowSpan"), cell.getCellMarkup().getRowSpan());
-            }
         } else {
             currentElem = addContentToParent(null, StandardStructureTypes.TD, pages.get(pageIndex), currentRow);
         }

@@ -49,9 +49,9 @@ public class Main {
             //Hard coded table2
             DataTable table2 = new DataTable("Table Summary 2", "Table2");
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Column \nHeader \n1 (Header)", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(1, "Column", "Table2Column1")),
-                    new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  new TableCellMarkup(1, "Column", "Table2Column2")),
-                    new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(1, "Column", "Table2Column3"))),
+                    new Cell("Column \nHeader \n1 (Header)", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup("Column", "Table2Column1")),
+                    new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  new TableCellMarkup("Column", "Table2Column2")),
+                    new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup("Column", "Table2Column3"))),
                 30));
             table2.addRow(new Row(Arrays.asList(
                     new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column1"}, "Table2Row1")),
