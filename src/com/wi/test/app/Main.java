@@ -33,16 +33,16 @@ public class Main {
                     50, 25, 50, sec1, StandardStructureTypes.H1, 0);
             DataTable table1 = new DataTable("Table Summary 1", "Table1");
             table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  "", new TableCellMarkup("Row", "Table1Row1")),
-                    new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row1"}))),
+                    new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  new TableCellMarkup("Row", "Table1Row1")),
+                    new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup(new String[]{"Table1Row1"}))),
                     15));
             table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row2")),
-                    new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row2"}))),
+                    new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, new TableCellMarkup("Row", "Table1Row2")),
+                    new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup(new String[]{"Table1Row2"}))),
                     15));
             table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, "", new TableCellMarkup("Row", "Table1Row3")),
-                    new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, "", new TableCellMarkup(new String[]{"Table1Row3"}))),
+                    new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, new TableCellMarkup("Row", "Table1Row3")),
+                    new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup(new String[]{"Table1Row3"}))),
                     15));
             formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
 
