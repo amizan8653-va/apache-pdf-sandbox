@@ -62,12 +62,6 @@ public class PDFormBuilder {
         PDPageContentStream contents = new PDPageContentStream(
                 pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
-        setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
-        // originally a cell coloring thing was here. weird why that would be considered marked content.
-        // or maybe the stuff from earlier with adding content to parent is sufficient.
-        contents.endMarkedContent();
-        addContentToParent(COSName.ARTIFACT, null, pages.get(pageIndex), currentElem);
         contents.close();
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
