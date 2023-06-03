@@ -34,15 +34,15 @@ public class Main {
             DataTable table1 = new DataTable("Table Summary 1");
             table1.addRow(new Row(Arrays.asList(
                     new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  new TableCellMarkup("Row", "Table1Row1")),
-                    new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup(new String[]{"Table1Row1"}))),
+                    new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup())),
                     15));
             table1.addRow(new Row(Arrays.asList(
                     new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, new TableCellMarkup("Row", "Table1Row2")),
-                    new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup(new String[]{"Table1Row2"}))),
+                    new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup())),
                     15));
             table1.addRow(new Row(Arrays.asList(
                     new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, new TableCellMarkup("Row", "Table1Row3")),
-                    new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup(new String[]{"Table1Row3"}))),
+                    new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, new TableCellMarkup())),
                     15));
             formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
 
@@ -54,23 +54,23 @@ public class Main {
                     new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup("Column", "Table2Column3"))),
                 30));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column1"}, "Table2Row1")),
+                    new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup()),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "Goodbye.",
-                            5, 215, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column2", "Table2Row1"})),
-                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column3", "Table2Row1"}))),
+                            5, 215, PDConstants.TOP_ALIGN, new TableCellMarkup()),
+                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup())),
                     50));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n2", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column1"}, "Table2Row2")),
+                    new Cell("Row \nHeader \n2", 5, 35, PDConstants.TOP_ALIGN, new TableCellMarkup()),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "Goodbye.",
-                            5, 215, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column2", "Table2Row2"})),
-                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup(new String[]{"Table2Column3", "Table2Row2"}))),
+                            5, 215, PDConstants.TOP_ALIGN, new TableCellMarkup()),
+                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, new TableCellMarkup())),
 
                     40));
             formBuilder.drawDataTable(table2, 50, 310, 0, sec1);

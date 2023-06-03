@@ -171,13 +171,6 @@ public class CustomTaggedPdfBuilder {
         } else {
             currentElem = addContentToParent(null, StandardStructureTypes.TD, pages.get(pageIndex), currentRow);
         }
-        if (cell.getCellMarkup().getHeaders().length > 0) {
-            COSArray headerA = new COSArray();
-            for (String s : cell.getCellMarkup().getHeaders()) {
-                headerA.add(new COSString(s));
-            }
-            cellAttr.setItem(COSName.getPDFName("Headers"), headerA);
-        }
         currentElem.getCOSObject().setItem(COSName.A, cellAttr);
     }
 
