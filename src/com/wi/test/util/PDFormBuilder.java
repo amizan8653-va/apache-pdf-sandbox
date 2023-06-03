@@ -176,25 +176,6 @@ public class PDFormBuilder {
         return structureElement;
     }
 
-
-    private void addWidgetContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
-        COSDictionary annotDict = new COSDictionary();
-        COSArray annotArray = new COSArray();
-        annotArray.add(COSInteger.get(currentMCID));
-        annotArray.add(objectReference);
-        annotDict.setItem(COSName.K, annotArray);
-        annotDict.setString(COSName.LANG, "EN-US");
-        annotDict.setItem(COSName.P, currentElem.getCOSObject());
-        annotDict.setItem(COSName.PG, pages.get(pageIndex).getCOSObject());
-        annotDict.setName(COSName.S, type);
-        annotDicts.add(annotDict);
-
-        setNextMarkedContentDictionary();
-        numDictionaries.add(annotDict);
-        fieldElem.appendKid(objectReference);
-        currentElem.appendKid(fieldElem);
-    }
-
     private void addTableCellMarkup(Cell cell, int pageIndex, PDStructureElement currentRow) {
         COSDictionary cellAttr = new COSDictionary();
         cellAttr.setName(COSName.O, "Table");
