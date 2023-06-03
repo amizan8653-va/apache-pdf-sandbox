@@ -197,8 +197,6 @@ public class PDFormBuilder {
         PDPageContentStream contents = new PDPageContentStream(
                 pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
-        contents.endMarkedContent();
         currentElem = addContentToParent(COSName.ARTIFACT, StandardStructureTypes.P, pages.get(pageIndex), currentElem);
         currentElem.setAlternateDescription(currentCell.getText());
         contents.close();
