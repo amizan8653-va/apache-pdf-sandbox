@@ -38,7 +38,6 @@ public class CustomTaggedPdfBuilder {
     private PDFont helveticaFont = null;
     private PDFont helveticaBoldFont = null;
     private PDStructureElement rootElem = null;
-    private PDStructureElement currentElem = null;
     private COSDictionary currentMarkedContentDictionary;
     private final COSArray nums = new COSArray();
     private final COSArray numDictionaries = new COSArray();
@@ -58,14 +57,14 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-//    public PDStructureElement drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex){
-//
+//    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex){
+//        PDStructureElement ListTagElement = addContentToParent(null, StandardStructureTypes.L, pages.get(pageIndex), parent);
 //    }
 
     public PDStructureElement drawTextElement(Text text, float x, float y, float height, PDStructureElement parent,
                                               String structType, int pageIndex) throws IOException {
 
-        currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
+        PDStructureElement currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
 
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
@@ -107,8 +106,8 @@ public class CustomTaggedPdfBuilder {
                 Cell currentCell = table.getCell(i, j);
                 float cellX = x + currentRow.getCellPosition(j);
                 float cellY = y + table.getRowPosition(i);
-                addTableCellParentTag(currentCell, pageIndex, currentTR);
-                drawCellContents(pageIndex, currentRow, currentCell, cellX, cellY);
+                PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
+                drawCellContents(pageIndex, currentRow, cellStructureElement, currentCell, cellX, cellY);
             }
 
         }
@@ -166,15 +165,16 @@ public class CustomTaggedPdfBuilder {
         return structureElement;
     }
 
-    private void addTableCellParentTag(Cell cell, int pageIndex, PDStructureElement currentRow) {
+    private PDStructureElement addTableCellParentTag(Cell cell, int pageIndex, PDStructureElement currentRow) {
         COSDictionary cellAttr = new COSDictionary();
         cellAttr.setName(COSName.O, "Table");
         String structureType = cell.isHeader() ? StandardStructureTypes.TH : StandardStructureTypes.TD;
-        currentElem = addContentToParent(null, structureType, pages.get(pageIndex), currentRow);
-        currentElem.getCOSObject().setItem(COSName.A, cellAttr);
+        PDStructureElement cellElement = addContentToParent(null, structureType, pages.get(pageIndex), currentRow);
+        cellElement.getCOSObject().setItem(COSName.A, cellAttr);
+        return cellElement;
     }
 
-    private void drawCellContents(int pageIndex, Row currentRow, Cell currentCell, float cellX, float cellY) throws IOException {
+    private void drawCellContents(int pageIndex, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) throws IOException {
         setNextMarkedContentDictionary();
         //Draw the cell's text with a given alignment, and tag it.
         PDPageContentStream contents = new PDPageContentStream(
@@ -204,7 +204,7 @@ public class CustomTaggedPdfBuilder {
 
         //End the marked content and append it's P structure element to the containing TD structure element.
         contents.endMarkedContent();
-        addContentToParent(COSName.P, null, pages.get(pageIndex), currentElem);
+        addContentToParent(COSName.P, null, pages.get(pageIndex), cellStructureElement);
         contents.close();
     }
 
