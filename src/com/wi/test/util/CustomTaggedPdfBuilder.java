@@ -4,6 +4,7 @@ import com.wi.test.constants.PDConstants;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
 import com.wi.test.pojo.Row;
+import com.wi.test.pojo.Text;
 import org.apache.pdfbox.cos.*;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.*;
@@ -55,8 +56,8 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-    public PDStructureElement drawElement(Cell textCell, float x, float y, float height, PDStructureElement parent,
-                                            String structType, int pageIndex) throws IOException {
+    public PDStructureElement drawElement(Text text, float x, float y, float height, PDStructureElement parent,
+                                          String structType, int pageIndex) throws IOException {
 
         currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
 
@@ -68,7 +69,7 @@ public class CustomTaggedPdfBuilder {
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
         //Draws the given text centered within the current table cell.
-        drawCellText(textCell, x + 5, y + height + textCell.getFontSize(), contents);
+        drawCellText(text, x + 5, y + height + text.getFontSize(), contents);
 
         //End the marked content and append it's P structure element to the containing P structure element.
         contents.endMarkedContent();
@@ -202,7 +203,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Add text at a given location starting from the top-left corner.
-    private void drawCellText(Cell cell, float x, float y, PDPageContentStream contents) throws IOException {
+    private void drawCellText(Text cell, float x, float y, PDPageContentStream contents) throws IOException {
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(defaultFont, cell.getFontSize());

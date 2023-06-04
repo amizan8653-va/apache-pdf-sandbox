@@ -23,27 +23,16 @@ public class Main {
         System.out.println(dateFormat.format(new Date()));
         try {
 
-            //Hard coded table1
             CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder(1, "UA EXAMPLE");
             PDStructureElement sec1 = formBuilder.addRoot(0);
+
             formBuilder.drawElement(
-                    new Cell("PDF HEADER 1",
-                            Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
-                    50, 25, 50, sec1, StandardStructureTypes.H1, 0);
-            DataTable table1 = new DataTable("Table Summary 1");
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  true),
-                    new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, false)),
-                    15));
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, true),
-                    new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, false)),
-                    15));
-            table1.addRow(new Row(Arrays.asList(
-                    new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, true),
-                    new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, false)),
-                    15));
-            formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
+                new Cell("PDF HEADER 1",
+                    Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
+                50, 25, 50, sec1, StandardStructureTypes.H1, 0);
+
+            drawTableOne(formBuilder, sec1);
+
 
             //Hard coded table2
             DataTable table2 = new DataTable("Table Summary 2");
@@ -73,11 +62,33 @@ public class Main {
 
                     40));
             formBuilder.drawDataTable(table2, 50, 310, 0, sec1);
+
+            // draw a bulleted list and try to tag it.
+
+
             formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
         } catch (IOException | TransformerException | XmpSchemaException ex) {
             ex.printStackTrace();
         }
         System.out.println(dateFormat.format(new Date()));
+    }
+
+    private static void drawTableOne(CustomTaggedPdfBuilder formBuilder, PDStructureElement sec1) throws IOException, TransformerException, XmpSchemaException {
+        //Hard coded table1
+        DataTable table1 = new DataTable("Table Summary 1");
+        table1.addRow(new Row(Arrays.asList(
+            new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  true),
+            new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, false)),
+            15));
+        table1.addRow(new Row(Arrays.asList(
+            new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, true),
+            new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, false)),
+            15));
+        table1.addRow(new Row(Arrays.asList(
+            new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, true),
+            new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, false)),
+            15));
+        formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
     }
 }
