@@ -35,22 +35,32 @@ public class CustomTaggedPdfBuilder {
 
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
-    private PDFont helveticaFont = null;
-    private PDFont helveticaBoldFont = null;
-    private PDStructureElement rootElem = null;
-    private COSDictionary currentMarkedContentDictionary;
+    private final PDFont helveticaFont;
+    private final PDFont helveticaBoldFont;
     private final COSArray nums = new COSArray();
     private final COSArray numDictionaries = new COSArray();
-    private int currentMCID = 0;
     private final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
     public final float PAGE_WIDTH = PDRectangle.A4.getWidth();
 
-    public CustomTaggedPdfBuilder(int initPages, String title) throws IOException, TransformerException, XmpSchemaException {
+    private int currentMCID = 0;
+    private PDStructureElement rootElem;
+    private COSDictionary currentMarkedContentDictionary;
 
+    public CustomTaggedPdfBuilder(int initPages, String title) throws IOException, TransformerException, XmpSchemaException {
         //Setup new document
         pdf = new PDDocument();
         pdf.getDocumentInformation().setTitle(title);
-        PDResources resources = setupFont();
+
+        // setup the fonts and embed them
+        PDResources resources = new PDResources();
+        this.helveticaFont = PDType0Font.load(pdf,
+            new PDTrueTypeFont(PDType1Font.HELVETICA.getCOSObject()).getTrueTypeFont(), true);
+        resources.put(COSName.getPDFName("Helv"), helveticaFont);
+
+        this.helveticaBoldFont = PDType0Font.load(pdf, new PDTrueTypeFont(PDType1Font.HELVETICA_BOLD.getCOSObject()).getTrueTypeFont(), true);
+        resources.put(COSName.getPDFName("Helv-Bold"), helveticaBoldFont);
+
+
         addXMPMetadata(title);
         setupDocumentCatalog();
         initiatePages(initPages, resources);
@@ -284,18 +294,6 @@ public class CustomTaggedPdfBuilder {
         markInfo.setMarked(true);
         documentCatalog.setMarkInfo(markInfo);
     }
-
-    private PDResources setupFont() throws IOException {
-        PDResources resources = new PDResources();
-        helveticaFont = PDType0Font.load(pdf,
-                new PDTrueTypeFont(PDType1Font.HELVETICA.getCOSObject()).getTrueTypeFont(), true);
-        resources.put(COSName.getPDFName("Helv"), helveticaFont);
-
-        helveticaBoldFont = PDType0Font.load(pdf, new PDTrueTypeFont(PDType1Font.HELVETICA_BOLD.getCOSObject()).getTrueTypeFont(), true);
-        resources.put(COSName.getPDFName("Helv-Bold"), helveticaBoldFont);
-        return resources;
-    }
-
 
     private void initiatePages(int initPages, PDResources resources) {
         //Create document initial pages
