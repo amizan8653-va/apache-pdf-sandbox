@@ -1,6 +1,7 @@
 package com.wi.test.util;
 
 import com.wi.test.constants.PDConstants;
+import com.wi.test.enums.Font;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
 import com.wi.test.pojo.Row;
@@ -34,7 +35,8 @@ public class CustomTaggedPdfBuilder {
 
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
-    private PDFont defaultFont = null;
+    private PDFont helveticaFont = null;
+    private PDFont helveticaBoldFont = null;
     private PDStructureElement rootElem = null;
     private PDStructureElement currentElem = null;
     private COSDictionary currentMarkedContentDictionary;
@@ -49,15 +51,19 @@ public class CustomTaggedPdfBuilder {
         //Setup new document
         pdf = new PDDocument();
         pdf.getDocumentInformation().setTitle(title);
-        PDResources resources = setupAcroForm();
+        PDResources resources = setupFont();
         addXMPMetadata(title);
         setupDocumentCatalog();
         initiatePages(initPages, resources);
 
     }
 
-    public PDStructureElement drawElement(Text text, float x, float y, float height, PDStructureElement parent,
-                                          String structType, int pageIndex) throws IOException {
+//    public PDStructureElement drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex){
+//
+//    }
+
+    public PDStructureElement drawTextElement(Text text, float x, float y, float height, PDStructureElement parent,
+                                              String structType, int pageIndex) throws IOException {
 
         currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
 
@@ -206,7 +212,7 @@ public class CustomTaggedPdfBuilder {
     private void drawCellText(Text cell, float x, float y, PDPageContentStream contents) throws IOException {
         //Open up a stream to draw text at a given location.
         contents.beginText();
-        contents.setFont(defaultFont, cell.getFontSize());
+        contents.setFont(getPDFont(cell.getFont()), cell.getFontSize());
         contents.newLineAtOffset(x, PAGE_HEIGHT - y);
         contents.setNonStrokingColor(cell.getTextColor());
         String[] lines = cell.getText().split("\n");
@@ -215,6 +221,13 @@ public class CustomTaggedPdfBuilder {
             contents.newLineAtOffset(0, -(cell.getFontSize() * 2));
         }
         contents.endText();
+    }
+
+    private PDFont getPDFont(Font font) {
+        return switch(font) {
+            case HELVETICA -> this.helveticaFont;
+            case HELVETICA_BOLD -> this.helveticaBoldFont;
+        };
     }
 
     //Assign an id for the next marked content element.
@@ -272,12 +285,14 @@ public class CustomTaggedPdfBuilder {
         documentCatalog.setMarkInfo(markInfo);
     }
 
-    private PDResources setupAcroForm() throws IOException {
-        //Set AcroForm Appearance Characteristics
+    private PDResources setupFont() throws IOException {
         PDResources resources = new PDResources();
-        defaultFont = PDType0Font.load(pdf,
+        helveticaFont = PDType0Font.load(pdf,
                 new PDTrueTypeFont(PDType1Font.HELVETICA.getCOSObject()).getTrueTypeFont(), true);
-        resources.put(COSName.getPDFName("Helv"), defaultFont);
+        resources.put(COSName.getPDFName("Helv"), helveticaFont);
+
+        helveticaBoldFont = PDType0Font.load(pdf, new PDTrueTypeFont(PDType1Font.HELVETICA_BOLD.getCOSObject()).getTrueTypeFont(), true);
+        resources.put(COSName.getPDFName("Helv-Bold"), helveticaBoldFont);
         return resources;
     }
 

@@ -1,6 +1,8 @@
 package com.wi.test.app;
 
 import com.wi.test.constants.PDConstants;
+import com.wi.test.enums.Font;
+import com.wi.test.pojo.Text;
 import com.wi.test.util.CustomTaggedPdfBuilder;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
@@ -26,8 +28,8 @@ public class Main {
             CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder(1, "UA EXAMPLE");
             PDStructureElement sec1 = formBuilder.addRoot(0);
 
-            formBuilder.drawElement(
-                new Cell("PDF HEADER 1",
+            formBuilder.drawTextElement(
+                new Cell("PDF HEADER 1", Font.HELVETICA_BOLD,
                     Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
                 50, 25, 50, sec1, StandardStructureTypes.H1, 0);
 
@@ -37,34 +39,33 @@ public class Main {
             //Hard coded table2
             DataTable table2 = new DataTable("Table Summary 2");
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Column \nHeader \n1 (Header)", 5, 35, PDConstants.TOP_ALIGN, true),
-                    new Cell("Column \nHeader \n2 (Description)", 5, 215, PDConstants.TOP_ALIGN,  true),
-                    new Cell("Column \nHeader \n3 (Text)",  5, 75, PDConstants.TOP_ALIGN, true)),
+                    new Cell("Column \nHeader \n1 (Header)", Font.HELVETICA, 5, 35, PDConstants.TOP_ALIGN, true),
+                    new Cell("Column \nHeader \n2 (Description)", Font.HELVETICA, 5, 215, PDConstants.TOP_ALIGN,  true),
+                    new Cell("Column \nHeader \n3 (Text)",  Font.HELVETICA, 5, 75, PDConstants.TOP_ALIGN, true)),
                 30));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n1", 5, 35, PDConstants.TOP_ALIGN, false),
+                    new Cell("Row \nHeader \n1", Font.HELVETICA, 5, 35, PDConstants.TOP_ALIGN, false),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "Goodbye.",
-                            5, 215, PDConstants.TOP_ALIGN, false),
-                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, false)),
+                        Font.HELVETICA, 5, 215, PDConstants.TOP_ALIGN, false),
+                    new Cell("System Verification: N/A.", Font.HELVETICA, 5, 75, PDConstants.TOP_ALIGN, false)),
                     50));
             table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n2", 5, 35, PDConstants.TOP_ALIGN, false),
+                    new Cell("Row \nHeader \n2", Font.HELVETICA, 5, 35, PDConstants.TOP_ALIGN, false),
                     new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                             "Goodbye.",
-                            5, 215, PDConstants.TOP_ALIGN, false),
-                    new Cell("System Verification: N/A.", 5, 75, PDConstants.TOP_ALIGN, false)),
+                        Font.HELVETICA, 5, 215, PDConstants.TOP_ALIGN, false),
+                    new Cell("System Verification: N/A.", Font.HELVETICA, 5, 75, PDConstants.TOP_ALIGN, false)),
 
                     40));
-            formBuilder.drawDataTable(table2, 50, 310, 0, sec1);
+            formBuilder.drawDataTable(table2, 50, 150, 0, sec1);
 
             // draw a bulleted list and try to tag it.
-
 
             formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
@@ -78,16 +79,16 @@ public class Main {
         //Hard coded table1
         DataTable table1 = new DataTable("Table Summary 1");
         table1.addRow(new Row(Arrays.asList(
-            new Cell("Row Header 1(ID):", 5, 100, PDConstants.LEFT_ALIGN,  true),
-            new Cell("56-8987", 5, 400, PDConstants.LEFT_ALIGN, false)),
+            new Cell("Row Header 1(ID):", Font.HELVETICA, 5, 100, PDConstants.LEFT_ALIGN,  true),
+            new Cell("56-8987", Font.HELVETICA, 5, 400, PDConstants.LEFT_ALIGN, false)),
             15));
         table1.addRow(new Row(Arrays.asList(
-            new Cell("Row Header 2(Name):", 5, 100, PDConstants.LEFT_ALIGN, true),
-            new Cell("Some name", 5, 400, PDConstants.LEFT_ALIGN, false)),
+            new Cell("Row Header 2(Name):", Font.HELVETICA, 5, 100, PDConstants.LEFT_ALIGN, true),
+            new Cell("Some name", Font.HELVETICA, 5, 400, PDConstants.LEFT_ALIGN, false)),
             15));
         table1.addRow(new Row(Arrays.asList(
-            new Cell("Row Header 3(Date):", 5, 100, PDConstants.LEFT_ALIGN, true),
-            new Cell("12/31/2016", 5, 400, PDConstants.LEFT_ALIGN, false)),
+            new Cell("Row Header 3(Date):", Font.HELVETICA, 5, 100, PDConstants.LEFT_ALIGN, true),
+            new Cell("12/31/2016", Font.HELVETICA, 5, 400, PDConstants.LEFT_ALIGN, false)),
             15));
         formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
     }
