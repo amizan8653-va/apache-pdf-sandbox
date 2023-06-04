@@ -14,7 +14,6 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
-import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
@@ -67,14 +66,21 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-//    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex){
-//        PDStructureElement ListTagElement = addContentToParent(null, StandardStructureTypes.L, pages.get(pageIndex), parent);
-//    }
+    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex){
+        PDStructureElement listContainer = appendToTagTree(StandardStructureTypes.L, pages.get(pageIndex), parent);
+        items.forEach(item -> {
+            PDStructureElement listElementContainer = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), listContainer);
+            PDStructureElement ListElementBulletElementContainer = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listElementContainer);
+            appendToTagTree(pages.get(pageIndex), ListElementBulletElementContainer);
+
+            PDStructureElement ListElementParagraphContainer = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listElementContainer);
+        });
+    }
 
     public PDStructureElement drawTextElement(Text text, float x, float y, float height, PDStructureElement parent,
                                               String structType, int pageIndex) throws IOException {
 
-        PDStructureElement currentElem = addContentToParent(null, structType, pages.get(pageIndex), parent);
+        PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
@@ -88,7 +94,7 @@ public class CustomTaggedPdfBuilder {
 
         //End the marked content and append it's P structure element to the containing P structure element.
         contents.endMarkedContent();
-        addContentToParent(COSName.P, null, pages.get(pageIndex), currentElem);
+        appendToTagTree(pages.get(pageIndex), currentElem);
         contents.close();
         return currentElem;
     }
@@ -100,7 +106,7 @@ public class CustomTaggedPdfBuilder {
         attr.setName(COSName.O, "Table");
         attr.setString(COSName.getPDFName("Summary"), table.getSummary());
         //Create a stream for drawing table's contents and append table structure element to the current form's structure element.
-        PDStructureElement currentTable = addContentToParent(null, StandardStructureTypes.TABLE, pages.get(pageIndex), parent);
+        PDStructureElement currentTable = appendToTagTree(StandardStructureTypes.TABLE, pages.get(pageIndex), parent);
         currentTable.getCOSObject().setItem(COSName.A, attr);
         currentTable.setAlternateDescription(table.getSummary());
 
@@ -108,7 +114,7 @@ public class CustomTaggedPdfBuilder {
         for (int i = 0; i < table.getRows().size(); i++) {
 
             //Go through each column and draw the cell and any cell's text with given alignment.
-            PDStructureElement currentTR = addContentToParent(null, StandardStructureTypes.TR, pages.get(pageIndex), currentTable);
+            PDStructureElement currentTR = appendToTagTree(StandardStructureTypes.TR, pages.get(pageIndex), currentTable);
             Row currentRow = table.getRows().get(i);
 
             for(int j = 0; j < table.getRows().get(i).getCells().size(); j++) {
@@ -141,45 +147,36 @@ public class CustomTaggedPdfBuilder {
     }
 
 
-    //Add a structure element to a parent structure element with optional marked content given a non-null name param.
-    private PDStructureElement addContentToParent(COSName markedName, String structureType, PDPage currentPage, PDStructureElement parent) {
-        //Create a structure element and add it to the current section.
-        PDStructureElement structureElement = null;
-        if (structureType != null) {
-            structureElement = new PDStructureElement(structureType, parent);
-            structureElement.setPage(currentPage);
-        }
-        //If COSName is not null then there is marked content.
-        if (markedName != null) {
-            //numDict for parent tree
-            COSDictionary numDict = new COSDictionary();
-            numDict.setInt(COSName.K, currentMCID - 1);
-            numDict.setString(COSName.LANG, "EN-US");
-            numDict.setItem(COSName.PG, currentPage.getCOSObject());
-
-            PDMarkedContent markedContent = COSName.ARTIFACT.equals(markedName)
-                ? new PDArtifactMarkedContent(currentMarkedContentDictionary)
-                : new PDMarkedContent(markedName, currentMarkedContentDictionary);
-
-            PDStructureElement elementToAppendTo = Optional.ofNullable(structureElement).orElse(parent);
-
-            elementToAppendTo.appendKid(markedContent);
-            numDict.setItem(COSName.P, elementToAppendTo.getCOSObject());
-
-            numDict.setName(COSName.S, markedName.getName());
-            numDictionaries.add(numDict);
-        }
-        if (structureElement != null) {
-            parent.appendKid(structureElement);
-        }
+    private PDStructureElement appendToTagTree(String structureType, PDPage currentPage, PDStructureElement parent){
+        // Create a structure element and add it to the current section.
+        // this is NOT marked content.
+        PDStructureElement structureElement = new PDStructureElement(structureType, parent);
+        structureElement.setPage(currentPage);
+        parent.appendKid(structureElement);
         return structureElement;
     }
+
+    private void appendToTagTree(PDPage currentPage, PDStructureElement parent){
+        COSDictionary numDict = new COSDictionary();
+        numDict.setInt(COSName.K, currentMCID - 1);
+        numDict.setString(COSName.LANG, "EN-US");
+        numDict.setItem(COSName.PG, currentPage.getCOSObject());
+
+        PDMarkedContent markedContent = new PDMarkedContent(COSName.P, currentMarkedContentDictionary);
+        parent.appendKid(markedContent);
+        numDict.setItem(COSName.P, parent.getCOSObject());
+
+        numDict.setName(COSName.S, COSName.P.getName());
+        numDictionaries.add(numDict);
+    }
+
+
 
     private PDStructureElement addTableCellParentTag(Cell cell, int pageIndex, PDStructureElement currentRow) {
         COSDictionary cellAttr = new COSDictionary();
         cellAttr.setName(COSName.O, "Table");
         String structureType = cell.isHeader() ? StandardStructureTypes.TH : StandardStructureTypes.TD;
-        PDStructureElement cellElement = addContentToParent(null, structureType, pages.get(pageIndex), currentRow);
+        PDStructureElement cellElement = appendToTagTree(structureType, pages.get(pageIndex), currentRow);
         cellElement.getCOSObject().setItem(COSName.A, cellAttr);
         return cellElement;
     }
@@ -214,7 +211,7 @@ public class CustomTaggedPdfBuilder {
 
         //End the marked content and append it's P structure element to the containing TD structure element.
         contents.endMarkedContent();
-        addContentToParent(COSName.P, null, pages.get(pageIndex), cellStructureElement);
+        appendToTagTree(pages.get(pageIndex), cellStructureElement);
         contents.close();
     }
 
