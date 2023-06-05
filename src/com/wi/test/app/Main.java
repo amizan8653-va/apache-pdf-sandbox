@@ -25,7 +25,7 @@ public class Main {
         System.out.println(dateFormat.format(new Date()));
         try {
 
-            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder(1, "UA EXAMPLE");
+            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE");
             PDStructureElement sec1 = formBuilder.addRoot(0);
 
             formBuilder.drawTextElement(

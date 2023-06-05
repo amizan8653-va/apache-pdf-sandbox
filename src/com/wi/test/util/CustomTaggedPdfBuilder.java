@@ -45,14 +45,19 @@ public class CustomTaggedPdfBuilder {
     private PDStructureElement rootElem;
     private COSDictionary currentMarkedContentDictionary;
 
-    public CustomTaggedPdfBuilder(int initPages, String title) throws IOException, TransformerException, XmpSchemaException {
+    // variables for adding additional pages
+    private final PDResources resources;
+    private final COSArray cosArrayForAdditionalPages;
+    private final COSArray boxArray;
+
+    public CustomTaggedPdfBuilder(String title) throws IOException, TransformerException, XmpSchemaException {
         //Setup new document
         pdf = new PDDocument();
         pdf.setVersion(1.7f);
         pdf.getDocumentInformation().setTitle(title);
 
         // setup the fonts and embed them
-        PDResources resources = new PDResources();
+        resources = new PDResources();
         this.helveticaFont = PDType0Font.load(pdf,
             new PDTrueTypeFont(PDType1Font.HELVETICA.getCOSObject()).getTrueTypeFont(), true);
         resources.put(COSName.getPDFName("Helv"), helveticaFont);
@@ -60,10 +65,16 @@ public class CustomTaggedPdfBuilder {
         this.helveticaBoldFont = PDType0Font.load(pdf, new PDTrueTypeFont(PDType1Font.HELVETICA_BOLD.getCOSObject()).getTrueTypeFont(), true);
         resources.put(COSName.getPDFName("Helv-Bold"), helveticaBoldFont);
 
+        cosArrayForAdditionalPages = new COSArray();
+        boxArray = new COSArray();
 
         addXMPMetadata(title);
         setupDocumentCatalog();
-        initiatePages(initPages, resources);
+
+        // setup page 1 & ability at add more pages.
+        prePageOne();
+        addPage();
+        postPageOne();
 
     }
 
@@ -301,27 +312,28 @@ public class CustomTaggedPdfBuilder {
         documentCatalog.setMarkInfo(markInfo);
     }
 
-    private void initiatePages(int initPages, PDResources resources) {
+    private void prePageOne(){
         //Create document initial pages
-        COSArray cosArray = new COSArray();
-        cosArray.add(COSName.getPDFName("PDF"));
-        cosArray.add(COSName.getPDFName("Text"));
-        COSArray boxArray = new COSArray();
+        cosArrayForAdditionalPages.add(COSName.getPDFName("PDF"));
+        cosArrayForAdditionalPages.add(COSName.getPDFName("Text"));
         boxArray.add(new COSFloat(0.0f));
         boxArray.add(new COSFloat(0.0f));
         boxArray.add(new COSFloat(612.0f));
         boxArray.add(new COSFloat(792.0f));
-        for (int i = 0; i < initPages; i++) {
-            PDPage page = new PDPage(PDRectangle.LETTER);
-            page.getCOSObject().setItem(COSName.getPDFName("Tabs"), COSName.S);
-            page.setResources(resources);
-            page.getResources().getCOSObject().setItem(COSName.PROC_SET, cosArray);
-            page.getCOSObject().setItem(COSName.CROP_BOX, boxArray);
-            page.getCOSObject().setItem(COSName.ROTATE, COSInteger.get(0));
-            page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(0));
-            pages.add(page);
-            pdf.addPage(pages.get(pages.size() - 1));
-        }
+    }
+    private void addPage(){
+        PDPage page = new PDPage(PDRectangle.LETTER);
+        page.getCOSObject().setItem(COSName.getPDFName("Tabs"), COSName.S);
+        page.setResources(resources);
+        page.getResources().getCOSObject().setItem(COSName.PROC_SET, cosArrayForAdditionalPages);
+        page.getCOSObject().setItem(COSName.CROP_BOX, boxArray);
+        page.getCOSObject().setItem(COSName.ROTATE, COSInteger.get(0));
+        page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(0));
+        pages.add(page);
+        pdf.addPage(pages.get(pages.size() - 1));
+    }
+
+    private void postPageOne(){
         nums.add(COSInteger.get(0));
     }
 
