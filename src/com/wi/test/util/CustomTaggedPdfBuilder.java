@@ -48,6 +48,7 @@ public class CustomTaggedPdfBuilder {
     public CustomTaggedPdfBuilder(int initPages, String title) throws IOException, TransformerException, XmpSchemaException {
         //Setup new document
         pdf = new PDDocument();
+        pdf.setVersion(1.7f);
         pdf.getDocumentInformation().setTitle(title);
 
         // setup the fonts and embed them
