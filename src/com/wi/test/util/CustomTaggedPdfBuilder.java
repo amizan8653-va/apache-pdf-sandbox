@@ -66,16 +66,30 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex){
-        PDStructureElement listContainer = appendToTagTree(StandardStructureTypes.L, pages.get(pageIndex), parent);
-        items.forEach(item -> {
-            PDStructureElement listElementContainer = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), listContainer);
-            PDStructureElement ListElementBulletElementContainer = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listElementContainer);
-            appendToTagTree(pages.get(pageIndex), ListElementBulletElementContainer);
-
-            PDStructureElement ListElementParagraphContainer = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listElementContainer);
-        });
-    }
+//    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex) throws IOException{
+//        PDStructureElement listContainer = appendToTagTree(StandardStructureTypes.L, pages.get(pageIndex), parent);
+//        for(String item: items){
+//            PDStructureElement listElementContainer = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), listContainer);
+//            PDStructureElement ListElementBulletElementContainer = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listElementContainer);
+//            appendToTagTree(pages.get(pageIndex), ListElementBulletElementContainer);
+//
+//            PDPageContentStream contents = new PDPageContentStream(
+//                pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
+//            setNextMarkedContentDictionary();
+//            contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+//
+//            //Draws the given text centered within the current table cell.
+//            drawSimpleText(Character.toString('\u2022'), x + 5, y + height + text.getFontSize(), contents);
+//
+//            //End the marked content and append it's P structure element to the containing P structure element.
+//            contents.endMarkedContent();
+//            appendToTagTree(pages.get(pageIndex), currentElem);
+//            contents.close();
+//
+//            // U+2022 = bullet point
+//            PDStructureElement ListElementParagraphContainer = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listElementContainer);
+//        }
+//    }
 
     public PDStructureElement drawTextElement(Text text, float x, float y, float height, PDStructureElement parent,
                                               String structType, int pageIndex) throws IOException {
@@ -90,7 +104,7 @@ public class CustomTaggedPdfBuilder {
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
         //Draws the given text centered within the current table cell.
-        drawCellText(text, x + 5, y + height + text.getFontSize(), contents);
+        drawSimpleText(text, x + 5, y + height + text.getFontSize(), contents);
 
         //End the marked content and append it's P structure element to the containing P structure element.
         contents.endMarkedContent();
@@ -189,24 +203,18 @@ public class CustomTaggedPdfBuilder {
         setNextMarkedContentDictionary();
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
         switch (currentCell.getAlign()) {
-            case PDConstants.CENTER_ALIGN:
-                drawCellText(currentCell,
-                        cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
-                        cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
-                        contents);
-                break;
-            case PDConstants.TOP_ALIGN:
-                drawCellText(currentCell,
-                        cellX + 5,
-                        cellY + currentCell.getFontSize() / 4.0f + 5,
-                        contents);
-                break;
-            case PDConstants.LEFT_ALIGN:
-                drawCellText(currentCell,
-                        cellX + 5,
-                        cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
-                        contents);
-                break;
+            case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell,
+                cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
+                cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
+                contents);
+            case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell,
+                cellX + 5,
+                cellY + currentCell.getFontSize() / 4.0f + 5,
+                contents);
+            case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell,
+                cellX + 5,
+                cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
+                contents);
         }
 
         //End the marked content and append it's P structure element to the containing TD structure element.
@@ -216,16 +224,16 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Add text at a given location starting from the top-left corner.
-    private void drawCellText(Text cell, float x, float y, PDPageContentStream contents) throws IOException {
+    private void drawSimpleText(Text text, float x, float y, PDPageContentStream contents) throws IOException {
         //Open up a stream to draw text at a given location.
         contents.beginText();
-        contents.setFont(getPDFont(cell.getFont()), cell.getFontSize());
+        contents.setFont(getPDFont(text.getFont()), text.getFontSize());
         contents.newLineAtOffset(x, PAGE_HEIGHT - y);
-        contents.setNonStrokingColor(cell.getTextColor());
-        String[] lines = cell.getText().split("\n");
+        contents.setNonStrokingColor(text.getTextColor());
+        String[] lines = text.getText().split("\n");
         for (String s: lines) {
             contents.showText(s);
-            contents.newLineAtOffset(0, -(cell.getFontSize() * 2));
+            contents.newLineAtOffset(0, -(text.getFontSize() * 2));
         }
         contents.endText();
     }

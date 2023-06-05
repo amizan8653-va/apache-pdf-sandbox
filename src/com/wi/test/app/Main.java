@@ -2,7 +2,6 @@ package com.wi.test.app;
 
 import com.wi.test.constants.PDConstants;
 import com.wi.test.enums.Font;
-import com.wi.test.pojo.Text;
 import com.wi.test.util.CustomTaggedPdfBuilder;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class Main {
 
@@ -31,7 +31,7 @@ public class Main {
             formBuilder.drawTextElement(
                 new Cell("PDF HEADER 1", Font.HELVETICA_BOLD,
                     Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
-                50, 25, 50, sec1, StandardStructureTypes.H1, 0);
+                0, 0, 50, sec1, StandardStructureTypes.H1, 0);
 
             drawTableOne(formBuilder, sec1);
 
@@ -65,7 +65,9 @@ public class Main {
                     40));
             formBuilder.drawDataTable(table2, 50, 150, 0, sec1);
 
+            List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");
             // draw a bulleted list and try to tag it.
+//            formBuilder.drawBulletList(bulletedListStrings, 50, 300, sec1, 0);
 
             formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
