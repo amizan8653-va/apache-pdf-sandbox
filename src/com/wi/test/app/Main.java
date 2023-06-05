@@ -63,7 +63,7 @@ public class Main {
                     new Cell("System Verification: N/A.", Font.HELVETICA, 5, 75, PDConstants.TOP_ALIGN, false)),
 
                     40));
-            formBuilder.drawDataTable(table2, 50, 150, 0, sec1);
+            formBuilder.drawTable(table2, 50, 150, 0, sec1);
 
             List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");
             // draw a bulleted list and try to tag it.
@@ -92,6 +92,6 @@ public class Main {
             new Cell("Row Header 3(Date):", Font.HELVETICA, 5, 100, PDConstants.LEFT_ALIGN, true),
             new Cell("12/31/2016", Font.HELVETICA, 5, 400, PDConstants.LEFT_ALIGN, false)),
             15));
-        formBuilder.drawDataTable(table1, 50, 100, 0, sec1);
+        formBuilder.drawTable(table1, 50, 100, 0, sec1);
     }
 }

@@ -126,7 +126,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Given a DataTable will draw each cell and any given text.
-    public void drawDataTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) throws IOException {
+    public void drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) throws IOException {
 
         COSDictionary attr = new COSDictionary();
         attr.setName(COSName.O, "Table");
