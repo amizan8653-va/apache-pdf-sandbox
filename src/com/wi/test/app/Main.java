@@ -2,6 +2,7 @@ package com.wi.test.app;
 
 import com.wi.test.constants.PDConstants;
 import com.wi.test.enums.Font;
+import com.wi.test.pojo.PageMargins;
 import com.wi.test.util.CustomTaggedPdfBuilder;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
@@ -25,7 +26,7 @@ public class Main {
         System.out.println(dateFormat.format(new Date()));
         try {
 
-            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE");
+            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,20,20,20));
             PDStructureElement sec1 = formBuilder.addRoot(0);
 
             formBuilder.drawTextElement(

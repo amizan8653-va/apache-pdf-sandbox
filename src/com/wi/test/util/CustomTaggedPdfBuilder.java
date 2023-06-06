@@ -4,6 +4,7 @@ import com.wi.test.constants.PDConstants;
 import com.wi.test.enums.Font;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
+import com.wi.test.pojo.PageMargins;
 import com.wi.test.pojo.Row;
 import com.wi.test.pojo.Text;
 import org.apache.pdfbox.cos.*;
@@ -41,6 +42,8 @@ public class CustomTaggedPdfBuilder {
     private final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
     public final float PAGE_WIDTH = PDRectangle.A4.getWidth();
 
+    private final PageMargins pageMargins;
+
     private int currentMCID = 0;
     private PDStructureElement rootElem;
     private COSDictionary currentMarkedContentDictionary;
@@ -50,11 +53,13 @@ public class CustomTaggedPdfBuilder {
     private final COSArray cosArrayForAdditionalPages;
     private final COSArray boxArray;
 
-    public CustomTaggedPdfBuilder(String title) throws IOException, TransformerException, XmpSchemaException {
+    public CustomTaggedPdfBuilder(String title, PageMargins margins) throws IOException, TransformerException, XmpSchemaException {
         //Setup new document
         pdf = new PDDocument();
         pdf.setVersion(1.7f);
         pdf.getDocumentInformation().setTitle(title);
+
+        this.pageMargins = margins;
 
         // setup the fonts and embed them
         resources = new PDResources();
@@ -240,7 +245,7 @@ public class CustomTaggedPdfBuilder {
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        contents.newLineAtOffset(x, PAGE_HEIGHT - y);
+        contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), PAGE_HEIGHT - y - this.pageMargins.getTopMargin());
         contents.setNonStrokingColor(text.getTextColor());
         String[] lines = text.getText().split("\n");
         for (String s: lines) {
