@@ -30,6 +30,7 @@ import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CustomTaggedPdfBuilder {
 
@@ -109,8 +110,9 @@ public class CustomTaggedPdfBuilder {
 //    }
 
     public PDStructureElement drawTextElement(Text text, float x, float y, float height, PDStructureElement parent,
-                                              String structType, int pageIndex) throws IOException {
+                                              String structType, int pageIndex) throws Exception {
 
+        List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
         PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
 
@@ -128,6 +130,37 @@ public class CustomTaggedPdfBuilder {
         appendToTagTree(pages.get(pageIndex), currentElem);
         contents.close();
         return currentElem;
+    }
+
+    private List<String> computeWrappedLines(Text text, float lineLimit) throws Exception {
+        var font = getPDFont(text.getFont());
+        var fontSize = text.getFontSize();
+        List<String> words = List.of(text.getText().split(" "));
+        List<Float> wordLengths = new ArrayList<>();
+        List<String> wrappedLines = new ArrayList<>();
+        float spaceWidth  = font.getStringWidth(" ") / 1000 * fontSize;
+        float currentLineWidth = 0;
+        int startingWordIndex = 0;
+        for (int i = 0; i < words.size(); i++) {
+            currentLineWidth  += font.getStringWidth(words.get(i)) / 1000 * fontSize;
+
+            if(currentLineWidth >  lineLimit){
+                // make a new line ending with the word before.
+                wrappedLines.add(String.join(" ", words.subList(startingWordIndex, i)));
+
+                // update starting word index to the current word. This word will be start of next line.
+                startingWordIndex = i;
+
+                // reset current line width back to 0;
+                currentLineWidth = 0;
+            } else {
+                // didn't hit a new line yet. Add a space to the count.
+                currentLineWidth += spaceWidth;
+            }
+        }
+        String lastLine = String.join(" ", words.subList(startingWordIndex, words.size()));
+        wrappedLines.add(lastLine);
+        return wrappedLines;
     }
 
     //Given a DataTable will draw each cell and any given text.

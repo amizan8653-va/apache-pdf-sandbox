@@ -5,13 +5,13 @@ import com.wi.test.enums.Font;
 import java.awt.Color;
 
 public class Text {
-    protected final int fontSize;
+    protected final float fontSize;
 
     protected final String text;
     protected final Color textColor;
     protected final Font font;
 
-    public Text(int fontSize, String text, Color textColor, Font font) {
+    public Text(float fontSize, String text, Color textColor, Font font) {
         this.fontSize = fontSize;
         this.text = text;
         this.textColor = textColor;
@@ -27,7 +27,7 @@ public class Text {
         return textColor;
     }
 
-    public int getFontSize() {
+    public float getFontSize() {
         return fontSize;
     }
 
