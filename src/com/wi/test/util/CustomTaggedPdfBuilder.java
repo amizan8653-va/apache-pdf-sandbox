@@ -158,8 +158,10 @@ public class CustomTaggedPdfBuilder {
                 currentLineWidth += spaceWidth;
             }
         }
+        // last line will have to be added.
         String lastLine = String.join(" ", words.subList(startingWordIndex, words.size()));
         wrappedLines.add(lastLine);
+
         return wrappedLines;
     }
 
