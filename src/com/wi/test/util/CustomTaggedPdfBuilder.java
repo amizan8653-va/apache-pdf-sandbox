@@ -40,8 +40,8 @@ public class CustomTaggedPdfBuilder {
     private final PDFont helveticaBoldFont;
     private final COSArray nums = new COSArray();
     private final COSArray numDictionaries = new COSArray();
-    private final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
-    public final float PAGE_WIDTH = PDRectangle.A4.getWidth();
+    private float PAGE_HEIGHT = PDRectangle.LETTER.getHeight();
+    public float PAGE_WIDTH = PDRectangle.LETTER.getWidth();
 
     private final PageMargins pageMargins;
 
@@ -49,12 +49,14 @@ public class CustomTaggedPdfBuilder {
     private PDStructureElement rootElem;
     private COSDictionary currentMarkedContentDictionary;
 
-    // variables for adding additional pages
+    // variables for adding additional pages and text wrapping
     private final PDResources resources;
     private final COSArray cosArrayForAdditionalPages;
     private final COSArray boxArray;
 
-    public CustomTaggedPdfBuilder(String title, PageMargins margins) throws IOException, TransformerException, XmpSchemaException {
+    private final float wrappedTextMultiplier;
+
+    public CustomTaggedPdfBuilder(String title, PageMargins margins, float wrappedTextMultiplier) throws IOException, TransformerException, XmpSchemaException {
         //Setup new document
         pdf = new PDDocument();
         pdf.setVersion(1.7f);
@@ -81,6 +83,8 @@ public class CustomTaggedPdfBuilder {
         prePageOne();
         addPage();
         postPageOne();
+
+        this.wrappedTextMultiplier = wrappedTextMultiplier;
 
     }
 
@@ -109,7 +113,7 @@ public class CustomTaggedPdfBuilder {
 //        }
 //    }
 
-    public PDStructureElement drawTextElement(Text text, float x, float y, float height, PDStructureElement parent,
+    public PDStructureElement drawTextElement(Text text, float x, float y, float yOffset, PDStructureElement parent,
                                               String structType, int pageIndex) throws Exception {
 
         List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
@@ -123,7 +127,7 @@ public class CustomTaggedPdfBuilder {
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
         //Draws the given text centered within the current table cell.
-        drawSimpleText(text, x + 5, y + height + text.getFontSize(), contents);
+        drawSimpleText(text, wrappedLines,x, y + yOffset + text.getFontSize(), contents);
 
         //End the marked content and append it's P structure element to the containing P structure element.
         contents.endMarkedContent();
@@ -136,13 +140,13 @@ public class CustomTaggedPdfBuilder {
         var font = getPDFont(text.getFont());
         var fontSize = text.getFontSize();
         List<String> words = List.of(text.getText().split(" "));
-        List<Float> wordLengths = new ArrayList<>();
         List<String> wrappedLines = new ArrayList<>();
-        float spaceWidth  = font.getStringWidth(" ") / 1000 * fontSize;
+        float spaceWidth  = font.getStringWidth(" ") / 1000.0f * fontSize;
         float currentLineWidth = 0;
         int startingWordIndex = 0;
         for (int i = 0; i < words.size(); i++) {
-            currentLineWidth  += font.getStringWidth(words.get(i)) / 1000 * fontSize;
+            float currentWordWidth = font.getStringWidth(words.get(i)) / 1000.0f * fontSize;
+            currentLineWidth  += currentWordWidth;
 
             if(currentLineWidth >  lineLimit){
                 // make a new line ending with the word before.
@@ -151,8 +155,8 @@ public class CustomTaggedPdfBuilder {
                 // update starting word index to the current word. This word will be start of next line.
                 startingWordIndex = i;
 
-                // reset current line width back to 0;
-                currentLineWidth = 0;
+                // reset current line width back to width of the current word
+                currentLineWidth = currentWordWidth;
             } else {
                 // didn't hit a new line yet. Add a space to the count.
                 currentLineWidth += spaceWidth;
@@ -166,7 +170,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Given a DataTable will draw each cell and any given text.
-    public void drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) throws IOException {
+    public void drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) throws Exception {
 
         COSDictionary attr = new COSDictionary();
         attr.setName(COSName.O, "Table");
@@ -247,23 +251,24 @@ public class CustomTaggedPdfBuilder {
         return cellElement;
     }
 
-    private void drawCellContents(int pageIndex, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) throws IOException {
+    private void drawCellContents(int pageIndex, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) throws Exception {
         setNextMarkedContentDictionary();
         //Draw the cell's text with a given alignment, and tag it.
         PDPageContentStream contents = new PDPageContentStream(
                 pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+        List<String> wrappedLines = computeWrappedLines(currentCell, currentCell.getWidth());
         switch (currentCell.getAlign()) {
-            case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell,
+            case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
                 cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
                 contents);
-            case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell,
+            case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentCell.getFontSize() / 4.0f + 5,
                 contents);
-            case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell,
+            case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
                 contents);
@@ -276,16 +281,15 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Add text at a given location starting from the top-left corner.
-    private void drawSimpleText(Text text, float x, float y, PDPageContentStream contents) throws IOException {
+    private void drawSimpleText(Text text, List<String> wrappedLines, float x, float y, PDPageContentStream contents) throws IOException {
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), PAGE_HEIGHT - y - this.pageMargins.getTopMargin());
         contents.setNonStrokingColor(text.getTextColor());
-        String[] lines = text.getText().split("\n");
-        for (String s: lines) {
+        for (String s: wrappedLines) {
             contents.showText(s);
-            contents.newLineAtOffset(0, -(text.getFontSize() * 2));
+            contents.newLineAtOffset(0, -(text.getFontSize() * this.wrappedTextMultiplier));
         }
         contents.endText();
     }

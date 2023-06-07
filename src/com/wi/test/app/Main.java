@@ -29,7 +29,7 @@ public class Main {
         System.out.println(dateFormat.format(new Date()));
         try {
 
-            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,20,20,20));
+            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,20,0,0), 1.5f);
             PDStructureElement sec1 = formBuilder.addRoot(0);
 
             formBuilder.drawTextElement(
@@ -85,7 +85,7 @@ public class Main {
         System.out.println(dateFormat.format(new Date()));
     }
 
-    private static void drawTableOne(CustomTaggedPdfBuilder formBuilder, PDStructureElement sec1) throws IOException, TransformerException, XmpSchemaException {
+    private static void drawTableOne(CustomTaggedPdfBuilder formBuilder, PDStructureElement sec1) throws Exception {
         //Hard coded table1
         DataTable table1 = new DataTable("Table Summary 1");
         table1.addRow(new Row(Arrays.asList(
