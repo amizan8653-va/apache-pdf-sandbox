@@ -38,7 +38,7 @@ public class Main {
                 0, 0, 50, sec1, StandardStructureTypes.H1, 0);
 
             formBuilder.drawTextElement(
-                new Text(10, IntStream.range(0,100).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
+                new Text(10, IntStream.range(0,500).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
                 0, 50, 25, sec1, StandardStructureTypes.P, 0);
 
 //            drawTableOne(formBuilder, sec1);

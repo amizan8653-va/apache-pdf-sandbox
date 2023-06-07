@@ -115,24 +115,32 @@ public class CustomTaggedPdfBuilder {
     public PDStructureElement drawTextElement(Text text, float x, float y, float yOffset, PDStructureElement parent,
                                               String structType, int pageIndex) throws Exception {
 
-        List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
-        List<List<String>> pageWrappedLines = computePagedWrappedLines(text, wrappedLines, y);
+        List<String> allWrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
+        List<List<String>> pageWrappedLines = computePagedWrappedLines(text, allWrappedLines, y);
         PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
+        //Draws the given texts
+        for(int i = pageIndex; i < pageIndex + pageWrappedLines.size(); i++) {
+            if(i != pageIndex){
+                addPage();
+            }
+            List<String> wrappedLines = pageWrappedLines.get(i - pageIndex);
 
-        //Set up the next marked content element with an MCID and create the containing P structure element.
-        PDPageContentStream contents = new PDPageContentStream(
-                pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
-        setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+            //Set up the next marked content element with an MCID and create the containing P structure element.
+            PDPageContentStream contents = new PDPageContentStream(
+                pdf, pages.get(i), PDPageContentStream.AppendMode.APPEND, false);
+            setNextMarkedContentDictionary();
+            contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
-        //Draws the given text centered within the current table cell.
-        drawSimpleText(text, wrappedLines,x, y + yOffset + text.getFontSize(), contents);
+            float start_y = i == (pageIndex) ? y + yOffset + text.getFontSize() : this.pageMargins.getTopMargin();
+            drawSimpleText(text, wrappedLines, x, start_y, contents);
 
-        //End the marked content and append it's P structure element to the containing P structure element.
-        contents.endMarkedContent();
-        appendToTagTree(pages.get(pageIndex), currentElem);
-        contents.close();
+
+            //End the marked content and append it's P structure element to the containing P structure element.
+            contents.endMarkedContent();
+            appendToTagTree(pages.get(pageIndex), currentElem);
+            contents.close();
+        }
         return currentElem;
     }
 
@@ -140,7 +148,7 @@ public class CustomTaggedPdfBuilder {
         List<List<String>> wrappedLinesInPages = new ArrayList<>();
         var font = getPDFont(text.getFont());
         var fontSize = text.getFontSize();
-        float heightPerLine = this.wrappedTextMultiplier * ( font.getFontDescriptor().getCapHeight()) / 1000.0f * fontSize;
+        float heightPerLine = this.wrappedTextMultiplier * ( font.getFontDescriptor().getFontBoundingBox().getHeight() ) / 1000.0f * fontSize;
         float numberOfLines = wrappedLines.size();
         float currPosition = y;
         int startingLineIndex = 0;
