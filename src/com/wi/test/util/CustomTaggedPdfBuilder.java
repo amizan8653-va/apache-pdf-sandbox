@@ -30,7 +30,6 @@ import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CustomTaggedPdfBuilder {
 
@@ -117,6 +116,7 @@ public class CustomTaggedPdfBuilder {
                                               String structType, int pageIndex) throws Exception {
 
         List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
+        List<List<String>> pageWrappedLines = computePagedWrappedLines(text, wrappedLines, y);
         PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
 
@@ -134,6 +134,34 @@ public class CustomTaggedPdfBuilder {
         appendToTagTree(pages.get(pageIndex), currentElem);
         contents.close();
         return currentElem;
+    }
+
+    private List<List<String>> computePagedWrappedLines(Text text, List<String> wrappedLines, float y) throws Exception {
+        List<List<String>> wrappedLinesInPages = new ArrayList<>();
+        var font = getPDFont(text.getFont());
+        var fontSize = text.getFontSize();
+        float heightPerLine = this.wrappedTextMultiplier * ( font.getFontDescriptor().getCapHeight()) / 1000.0f * fontSize;
+        float numberOfLines = wrappedLines.size();
+        float currPosition = y;
+        int startingLineIndex = 0;
+        int endLineIndexExclusive = 0;
+        for(endLineIndexExclusive = 0; endLineIndexExclusive < numberOfLines; endLineIndexExclusive++){
+            currPosition += heightPerLine;
+            if(currPosition >= (PAGE_HEIGHT - this.pageMargins.getBottomMargin())){
+                // we've reached the bottom of the page
+                currPosition = pageMargins.getTopMargin();
+                wrappedLinesInPages.add(wrappedLines.subList(startingLineIndex, endLineIndexExclusive));
+                startingLineIndex = endLineIndexExclusive;
+            }
+        }
+
+        // handle remaining lines
+        if(startingLineIndex != endLineIndexExclusive){
+            wrappedLinesInPages.add(wrappedLines.subList(startingLineIndex, wrappedLines.size()));
+        }
+
+        return wrappedLinesInPages;
+
     }
 
     private List<String> computeWrappedLines(Text text, float lineLimit) throws Exception {
