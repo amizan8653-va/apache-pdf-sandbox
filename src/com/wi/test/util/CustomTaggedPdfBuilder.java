@@ -81,7 +81,7 @@ public class CustomTaggedPdfBuilder {
         // setup page 1 & ability at add more pages.
         prePageOne();
         addPage();
-        postPageOne();
+        postPageOne(0);
 
         this.wrappedTextMultiplier = wrappedTextMultiplier;
 
@@ -112,36 +112,90 @@ public class CustomTaggedPdfBuilder {
 //        }
 //    }
 
-    public PDStructureElement drawTextElement(Text text, float x, float y, float yOffset, PDStructureElement parent,
+    public PDStructureElement drawTextElement(Text text, float x, float y, PDStructureElement parent,
                                               String structType, int pageIndex) throws Exception {
 
-        List<String> allWrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
-        List<List<String>> pageWrappedLines = computePagedWrappedLines(text, allWrappedLines, y);
-        PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
+        List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
+//        appendToTagTree(structType, pages.get(pageIndex), parent);
 
         //Draws the given texts
-        for(int i = pageIndex; i < pageIndex + pageWrappedLines.size(); i++) {
-            if(i != pageIndex){
-                addPage();
-            }
-            List<String> wrappedLines = pageWrappedLines.get(i - pageIndex);
+        PDStructureElement currentElem = drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent);
 
-            //Set up the next marked content element with an MCID and create the containing P structure element.
-            PDPageContentStream contents = new PDPageContentStream(
-                pdf, pages.get(i), PDPageContentStream.AppendMode.APPEND, false);
-            setNextMarkedContentDictionary();
-            contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
-            float start_y = i == (pageIndex) ? y + yOffset + text.getFontSize() : this.pageMargins.getTopMargin();
-            drawSimpleText(text, wrappedLines, x, start_y, contents);
-
-
-            //End the marked content and append it's P structure element to the containing P structure element.
-            contents.endMarkedContent();
-            appendToTagTree(pages.get(pageIndex), currentElem);
-            contents.close();
-        }
         return currentElem;
+    }
+
+    //Add text at a given location starting from the top-left corner.
+    private PDStructureElement drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent) throws IOException {
+
+        //Set up the next marked content element with an MCID and create the containing P structure element.
+        PDPageContentStream contents = new PDPageContentStream(
+            pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
+        setNextMarkedContentDictionary();
+        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
+        PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
+
+
+        //Open up a stream to draw text at a given location.
+        contents.beginText();
+        contents.setFont(getPDFont(text.getFont()), text.getFontSize());
+        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin();
+        contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+        contents.setNonStrokingColor(text.getTextColor());
+        for (int i = 0; i < wrappedLines.size(); i++) {
+            String line = wrappedLines.get(i);
+            float newOffset = -(text.getFontSize() * this.wrappedTextMultiplier);
+            invertedYAxisOffset += newOffset;
+            if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
+
+                contents.endText();
+
+                //End the marked content and append it's P structure element to the containing P structure element.
+                contents.endMarkedContent();
+                appendToTagTree(pages.get(pageIndex), currentElem);
+                contents.close();
+
+
+                addPage();
+                postPageOne(i+1);
+
+
+                //Set up the next marked content element with an MCID and create the containing P structure element.
+                pageIndex += 1;
+                contents = new PDPageContentStream(
+                    pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
+                setNextMarkedContentDictionary();
+                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
+                currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
+
+
+                //Open up a stream to draw text at a given location.
+                contents.beginText();
+                contents.setFont(getPDFont(text.getFont()), text.getFontSize());
+                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin();
+                contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+                contents.setNonStrokingColor(text.getTextColor());
+
+                System.out.println("new page logic executed");
+            }
+
+
+            contents.showText(line);
+            contents.newLineAtOffset(0, -(text.getFontSize() * this.wrappedTextMultiplier));
+        }
+        contents.endText();
+
+
+        //End the marked content and append it's P structure element to the containing P structure element.
+        contents.endMarkedContent();
+        appendToTagTree(pages.get(pageIndex), currentElem);
+        contents.close();
+
+        System.out.println("terminating");
+
+        return currentElem;
+
     }
 
     private List<List<String>> computePagedWrappedLines(Text text, List<String> wrappedLines, float y) throws Exception {
@@ -296,38 +350,31 @@ public class CustomTaggedPdfBuilder {
         contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
         List<String> wrappedLines = computeWrappedLines(currentCell, currentCell.getWidth());
         switch (currentCell.getAlign()) {
+            // Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
                 cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
-                contents);
+                pageIndex,
+                StandardStructureTypes.P,
+                cellStructureElement);
             case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentCell.getFontSize() / 4.0f + 5,
-                contents);
+                pageIndex,
+                StandardStructureTypes.P,
+                cellStructureElement);
             case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
-                contents);
+                pageIndex,
+                StandardStructureTypes.P,
+                cellStructureElement);
         }
 
         //End the marked content and append it's P structure element to the containing TD structure element.
         contents.endMarkedContent();
         appendToTagTree(pages.get(pageIndex), cellStructureElement);
         contents.close();
-    }
-
-    //Add text at a given location starting from the top-left corner.
-    private void drawSimpleText(Text text, List<String> wrappedLines, float x, float y, PDPageContentStream contents) throws IOException {
-        //Open up a stream to draw text at a given location.
-        contents.beginText();
-        contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), PAGE_HEIGHT - y - this.pageMargins.getTopMargin());
-        contents.setNonStrokingColor(text.getTextColor());
-        for (String s: wrappedLines) {
-            contents.showText(s);
-            contents.newLineAtOffset(0, -(text.getFontSize() * this.wrappedTextMultiplier));
-        }
-        contents.endText();
     }
 
     private PDFont getPDFont(Font font) {
@@ -413,8 +460,8 @@ public class CustomTaggedPdfBuilder {
         pdf.addPage(pages.get(pages.size() - 1));
     }
 
-    private void postPageOne(){
-        nums.add(COSInteger.get(0));
+    private void postPageOne(int value){
+        nums.add(COSInteger.get(value));
     }
 
     //Adds the parent tree to root struct element to identify tagged content

@@ -29,17 +29,17 @@ public class Main {
         System.out.println(dateFormat.format(new Date()));
         try {
 
-            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,20,0,0), 1.5f);
+            CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(0,0,0,0), 1.5f);
             PDStructureElement sec1 = formBuilder.addRoot(0);
 
             formBuilder.drawTextElement(
                 new Cell("PDF HEADER 1", Font.HELVETICA_BOLD,
                     Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
-                0, 0, 50, sec1, StandardStructureTypes.H1, 0);
+                0, 0, sec1, StandardStructureTypes.H1, 0);
 
             formBuilder.drawTextElement(
                 new Text(10, IntStream.range(0,500).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
-                0, 50, 25, sec1, StandardStructureTypes.P, 0);
+                0, 50, sec1, StandardStructureTypes.P, 0);
 
 //            drawTableOne(formBuilder, sec1);
 //
