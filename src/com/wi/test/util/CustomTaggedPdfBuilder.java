@@ -7,6 +7,7 @@ import com.wi.test.pojo.DataTable;
 import com.wi.test.pojo.PageMargins;
 import com.wi.test.pojo.Row;
 import com.wi.test.pojo.Text;
+import com.wi.test.pojo.UpdatedPagePosition;
 import org.apache.pdfbox.cos.*;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.*;
@@ -112,20 +113,17 @@ public class CustomTaggedPdfBuilder {
 //        }
 //    }
 
-    public PDStructureElement drawTextElement(Text text, float x, float y, PDStructureElement parent,
+    public UpdatedPagePosition drawTextElement(Text text, float x, float y, PDStructureElement parent,
                                               String structType, int pageIndex) throws Exception {
 
         List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
-//        appendToTagTree(structType, pages.get(pageIndex), parent);
 
         //Draws the given texts
-        PDStructureElement currentElem = drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent);
-
-        return currentElem;
+        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent);
     }
 
     //Add text at a given location starting from the top-left corner.
-    private PDStructureElement drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent) throws IOException {
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent) throws IOException {
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
         PDPageContentStream contents = new PDPageContentStream(
@@ -177,7 +175,6 @@ public class CustomTaggedPdfBuilder {
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
 
-                System.out.println("new page logic executed");
             }
 
 
@@ -192,37 +189,7 @@ public class CustomTaggedPdfBuilder {
         appendToTagTree(pages.get(pageIndex), currentElem);
         contents.close();
 
-        System.out.println("terminating");
-
-        return currentElem;
-
-    }
-
-    private List<List<String>> computePagedWrappedLines(Text text, List<String> wrappedLines, float y) throws Exception {
-        List<List<String>> wrappedLinesInPages = new ArrayList<>();
-        var font = getPDFont(text.getFont());
-        var fontSize = text.getFontSize();
-        float heightPerLine = this.wrappedTextMultiplier * ( font.getFontDescriptor().getFontBoundingBox().getHeight() ) / 1000.0f * fontSize;
-        float numberOfLines = wrappedLines.size();
-        float currPosition = y;
-        int startingLineIndex = 0;
-        int endLineIndexExclusive = 0;
-        for(endLineIndexExclusive = 0; endLineIndexExclusive < numberOfLines; endLineIndexExclusive++){
-            currPosition += heightPerLine;
-            if(currPosition >= (PAGE_HEIGHT - this.pageMargins.getBottomMargin())){
-                // we've reached the bottom of the page
-                currPosition = pageMargins.getTopMargin();
-                wrappedLinesInPages.add(wrappedLines.subList(startingLineIndex, endLineIndexExclusive));
-                startingLineIndex = endLineIndexExclusive;
-            }
-        }
-
-        // handle remaining lines
-        if(startingLineIndex != endLineIndexExclusive){
-            wrappedLinesInPages.add(wrappedLines.subList(startingLineIndex, wrappedLines.size()));
-        }
-
-        return wrappedLinesInPages;
+        return new UpdatedPagePosition(PAGE_HEIGHT - invertedYAxisOffset, pageIndex);
 
     }
 
@@ -260,7 +227,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Given a DataTable will draw each cell and any given text.
-    public void drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) throws Exception {
+    public UpdatedPagePosition drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) throws Exception {
 
         COSDictionary attr = new COSDictionary();
         attr.setName(COSName.O, "Table");
@@ -271,6 +238,9 @@ public class CustomTaggedPdfBuilder {
         currentTable.setAlternateDescription(table.getSummary());
 
         //Go through each row and add a TR structure element to the table structure element.
+
+        // default return value that should never actually be used.
+        UpdatedPagePosition updatedPagePosition = new UpdatedPagePosition(y, pageIndex);
         for (int i = 0; i < table.getRows().size(); i++) {
 
             //Go through each column and draw the cell and any cell's text with given alignment.
@@ -283,10 +253,12 @@ public class CustomTaggedPdfBuilder {
                 float cellX = x + currentRow.getCellPosition(j);
                 float cellY = y + table.getRowPosition(i);
                 PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
-                drawCellContents(pageIndex, currentRow, cellStructureElement, currentCell, cellX, cellY);
+                updatedPagePosition = drawCellContents(pageIndex, currentRow, cellStructureElement, currentCell, cellX, cellY);
             }
 
         }
+
+        return updatedPagePosition;
 
     }
 
@@ -341,15 +313,10 @@ public class CustomTaggedPdfBuilder {
         return cellElement;
     }
 
-    private void drawCellContents(int pageIndex, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) throws Exception {
-        setNextMarkedContentDictionary();
+    private UpdatedPagePosition drawCellContents(int pageIndex, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) throws Exception {
         //Draw the cell's text with a given alignment, and tag it.
-        PDPageContentStream contents = new PDPageContentStream(
-                pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
-        setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
         List<String> wrappedLines = computeWrappedLines(currentCell, currentCell.getWidth());
-        switch (currentCell.getAlign()) {
+        return switch (currentCell.getAlign()) {
             // Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
@@ -369,12 +336,8 @@ public class CustomTaggedPdfBuilder {
                 pageIndex,
                 StandardStructureTypes.P,
                 cellStructureElement);
-        }
-
-        //End the marked content and append it's P structure element to the containing TD structure element.
-        contents.endMarkedContent();
-        appendToTagTree(pages.get(pageIndex), cellStructureElement);
-        contents.close();
+            default -> throw new RuntimeException("invalid text justification used.");
+        };
     }
 
     private PDFont getPDFont(Font font) {
