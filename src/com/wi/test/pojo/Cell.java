@@ -1,9 +1,11 @@
 package com.wi.test.pojo;
 
 import com.wi.test.enums.Font;
+import lombok.Getter;
 
 import java.awt.Color;
 
+@Getter
 public class Cell extends Text {
     private final String align;
     private final boolean header;
@@ -22,18 +24,6 @@ public class Cell extends Text {
         this.width = width;;
         this.align = align;
         this.header = false;
-    }
-
-    public String getAlign() {
-        return align;
-    }
-
-    public boolean isHeader() {
-        return header;
-    }
-
-    public float getWidth() {
-        return width;
     }
 
 }

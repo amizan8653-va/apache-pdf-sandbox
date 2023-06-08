@@ -31,6 +31,10 @@ import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import java.util.stream.Collectors;
+
+
+import lombok.SneakyThrows;
 
 public class CustomTaggedPdfBuilder {
 
@@ -56,7 +60,8 @@ public class CustomTaggedPdfBuilder {
 
     private final float wrappedTextMultiplier;
 
-    public CustomTaggedPdfBuilder(String title, PageMargins margins, float wrappedTextMultiplier) throws IOException, TransformerException, XmpSchemaException {
+    @SneakyThrows
+    public CustomTaggedPdfBuilder(String title, PageMargins margins, float wrappedTextMultiplier) {
         //Setup new document
         pdf = new PDDocument();
         pdf.setVersion(1.7f);
@@ -88,7 +93,7 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-//    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex) throws IOException{
+//    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex) {
 //        PDStructureElement listContainer = appendToTagTree(StandardStructureTypes.L, pages.get(pageIndex), parent);
 //        for(String item: items){
 //            PDStructureElement listElementContainer = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), listContainer);
@@ -113,8 +118,9 @@ public class CustomTaggedPdfBuilder {
 //        }
 //    }
 
+    @SneakyThrows
     public UpdatedPagePosition drawTextElement(Text text, float x, float y, PDStructureElement parent,
-                                              String structType, int pageIndex) throws Exception {
+                                              String structType, int pageIndex) {
 
         List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
 
@@ -123,7 +129,8 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Add text at a given location starting from the top-left corner.
-    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent) throws IOException {
+    @SneakyThrows
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent){
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
         PDPageContentStream contents = new PDPageContentStream(
@@ -193,7 +200,8 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-    private List<String> computeWrappedLines(Text text, float lineLimit) throws Exception {
+    @SneakyThrows
+    private List<String> computeWrappedLines(Text text, float lineLimit) {
         var font = getPDFont(text.getFont());
         var fontSize = text.getFontSize();
         List<String> words = List.of(text.getText().split(" "));
@@ -227,7 +235,8 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Given a DataTable will draw each cell and any given text.
-    public UpdatedPagePosition drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) throws Exception {
+    @SneakyThrows
+    public UpdatedPagePosition drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) {
 
         COSDictionary attr = new COSDictionary();
         attr.setName(COSName.O, "Table");
@@ -247,13 +256,31 @@ public class CustomTaggedPdfBuilder {
             PDStructureElement currentTR = appendToTagTree(StandardStructureTypes.TR, pages.get(pageIndex), currentTable);
             Row currentRow = table.getRows().get(i);
 
+            List<List<String>> wrappedLinesPerCell = table.getRows().get(i).getCells().stream()
+                .map(cell -> computeWrappedLines(cell, cell.getWidth()))
+                .collect(Collectors.toList());
+
+            float maxFontSize = (float) table.getRows().get(i).getCells().stream()
+                .mapToDouble(Text::getFontSize)
+                .max()
+                .orElseThrow();
+
+            int maxNumberOfLines = wrappedLinesPerCell.stream()
+                .mapToInt(List::size)
+                .max()
+                .orElseThrow();
+
+            float newHeight = maxNumberOfLines * maxFontSize * this.wrappedTextMultiplier;
+
+            table.getRows().get(i).setHeight(newHeight);
+
             for(int j = 0; j < table.getRows().get(i).getCells().size(); j++) {
 
                 Cell currentCell = table.getCell(i, j);
                 float cellX = x + currentRow.getCellPosition(j);
                 float cellY = y + table.getRowPosition(i);
                 PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
-                updatedPagePosition = drawCellContents(pageIndex, currentRow, cellStructureElement, currentCell, cellX, cellY);
+                updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY);
             }
 
         }
@@ -272,7 +299,8 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Save the pdf to disk and close the stream
-    public void saveAndClose(String filePath) throws IOException {
+    @SneakyThrows
+    public void saveAndClose(String filePath) {
         addParentTree();
         pdf.save(filePath);
         pdf.close();
@@ -313,11 +341,8 @@ public class CustomTaggedPdfBuilder {
         return cellElement;
     }
 
-    private UpdatedPagePosition drawCellContents(int pageIndex, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) throws Exception {
+    private UpdatedPagePosition drawCellContents(int pageIndex, List<String> wrappedLines, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) {
         //Draw the cell's text with a given alignment, and tag it.
-        List<String> wrappedLines = computeWrappedLines(currentCell, currentCell.getWidth());
-        float newHeight = wrappedLines.size() * currentCell.getFontSize() * this.wrappedTextMultiplier;
-        currentRow.setHeight(newHeight);
         return switch (currentCell.getAlign()) {
             // Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
@@ -356,7 +381,8 @@ public class CustomTaggedPdfBuilder {
         currentMCID++;
     }
 
-    private void addXMPMetadata(String title) throws TransformerException, IOException {
+    @SneakyThrows
+    private void addXMPMetadata(String title) {
         //Add UA XMP metadata based on specs at https://taggedpdf.com/508-pdf-help-center/pdfua-identifier-missing/
         XMPMetadata xmp = XMPMetadata.createXMPMetadata();
         xmp.createAndAddDublinCoreSchema();

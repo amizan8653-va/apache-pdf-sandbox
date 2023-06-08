@@ -1,17 +1,19 @@
 package com.wi.test.pojo;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
+@Getter
 public class Row {
     private final List<Cell> cells;
+
+    @Setter
     private float height;
     public Row(List<Cell> cells) {
         this.height = 0;
         this.cells = cells;
-    }
-
-    public List<Cell> getCells() {
-        return cells;
     }
 
     public float getCellPosition(int cellIndex) {
@@ -20,13 +22,5 @@ public class Row {
             currentPosition += cells.get(i).getWidth();
         }
         return currentPosition;
-    }
-
-    public float getHeight() {
-        return height;
-    }
-
-    public void setHeight(float newHeight) {
-        height = newHeight;
     }
 }

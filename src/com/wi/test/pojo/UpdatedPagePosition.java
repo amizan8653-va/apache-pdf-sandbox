@@ -1,21 +1,15 @@
 package com.wi.test.pojo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+@Builder
 public class UpdatedPagePosition {
-    float y;
-    int pageIndex;
-
-    public UpdatedPagePosition(float y, int pageIndex) {
-        this.y = y;
-        this.pageIndex = pageIndex;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    public int getPageIndex() {
-        return pageIndex;
-    }
+    private final float y;
+    private final int pageIndex;
 
     @Override
     public String toString() {

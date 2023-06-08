@@ -1,8 +1,11 @@
 package com.wi.test.pojo;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class DataTable {
 
     private final List<Row> rows = new ArrayList<>();
@@ -26,14 +29,6 @@ public class DataTable {
             currentPosition += rows.get(i).getHeight();
         }
         return currentPosition;
-    }
-
-    public List<Row> getRows() {
-        return rows;
-    }
-
-    public String getSummary() {
-        return summary;
     }
 
 }
