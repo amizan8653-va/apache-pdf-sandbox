@@ -215,7 +215,8 @@ public class CustomTaggedPdfBuilder {
 
             if(currentLineWidth >  lineLimit){
                 // make a new line ending with the word before.
-                wrappedLines.add(String.join(" ", words.subList(startingWordIndex, i)));
+                String line = String.join(" ", words.subList(startingWordIndex, i));
+                wrappedLines.add(line.trim() + " ");
 
                 // update starting word index to the current word. This word will be start of next line.
                 startingWordIndex = i;
@@ -229,7 +230,7 @@ public class CustomTaggedPdfBuilder {
         }
         // last line will have to be added.
         String lastLine = String.join(" ", words.subList(startingWordIndex, words.size()));
-        wrappedLines.add(lastLine);
+        wrappedLines.add(lastLine.trim() + " ");
 
         return wrappedLines;
     }
