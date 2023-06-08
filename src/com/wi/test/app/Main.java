@@ -70,7 +70,7 @@ public class Main {
 
         newPosition = formBuilder.drawTextElement(
             new Text(12, IntStream.range(0,500).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
-            0, newPosition.getY()  + 25, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
+            0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
         System.out.println(newPosition);
 
 //        List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");

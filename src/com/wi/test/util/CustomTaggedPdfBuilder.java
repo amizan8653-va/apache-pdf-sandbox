@@ -259,8 +259,7 @@ public class CustomTaggedPdfBuilder {
 
         //Go through each row and add a TR structure element to the table structure element.
 
-        // default return value that should never actually be used.
-        UpdatedPagePosition updatedPagePosition = new UpdatedPagePosition(y, pageIndex);
+        UpdatedPagePosition bottomMostUpdatedPosition = new UpdatedPagePosition(Float.NEGATIVE_INFINITY, -1);
         for (int i = 0; i < table.getRows().size(); i++) {
 
             //Go through each column and draw the cell and any cell's text with given alignment.
@@ -291,12 +290,15 @@ public class CustomTaggedPdfBuilder {
                 float cellX = x + currentRow.getCellPosition(j);
                 float cellY = y + table.getRowPosition(i);
                 PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
-                updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY);
+                UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY);
+                if(updatedPagePosition.getY() > bottomMostUpdatedPosition.getY()){
+                    bottomMostUpdatedPosition = updatedPagePosition;
+                }
             }
 
         }
 
-        return updatedPagePosition;
+        return bottomMostUpdatedPosition;
 
     }
 
