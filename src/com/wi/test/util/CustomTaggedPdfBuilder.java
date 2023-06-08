@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import lombok.SneakyThrows;
@@ -204,33 +205,42 @@ public class CustomTaggedPdfBuilder {
     private List<String> computeWrappedLines(Text text, float lineLimit) {
         var font = getPDFont(text.getFont());
         var fontSize = text.getFontSize();
-        List<String> words = List.of(text.getText().split(" "));
+        List<List<String>> linesOfWords = Stream.of(text.getText().split("\n"))
+            .map(line -> List.of(line.split(" ")))
+            .collect(Collectors.toList());
+
         List<String> wrappedLines = new ArrayList<>();
         float spaceWidth  = font.getStringWidth(" ") / 1000.0f * fontSize;
-        float currentLineWidth = 0;
-        int startingWordIndex = 0;
-        for (int i = 0; i < words.size(); i++) {
-            float currentWordWidth = font.getStringWidth(words.get(i)) / 1000.0f * fontSize;
-            currentLineWidth  += currentWordWidth;
+        float currentLineWidth;
+        int startingWordIndex;
+        for (List<String> words : linesOfWords) {
 
-            if(currentLineWidth >  lineLimit){
-                // make a new line ending with the word before.
-                String line = String.join(" ", words.subList(startingWordIndex, i));
-                wrappedLines.add(line.trim() + " ");
+            currentLineWidth = 0;
+            startingWordIndex = 0;
 
-                // update starting word index to the current word. This word will be start of next line.
-                startingWordIndex = i;
+            for (int i = 0; i < words.size(); i++) {
+                float currentWordWidth = font.getStringWidth(words.get(i)) / 1000.0f * fontSize;
+                currentLineWidth += currentWordWidth;
 
-                // reset current line width back to width of the current word
-                currentLineWidth = currentWordWidth;
-            } else {
-                // didn't hit a new line yet. Add a space to the count.
-                currentLineWidth += spaceWidth;
+                if (currentLineWidth > lineLimit) {
+                    // make a new line ending with the word before.
+                    String line = String.join(" ", words.subList(startingWordIndex, i));
+                    wrappedLines.add(line.trim() + " ");
+
+                    // update starting word index to the current word. This word will be start of next line.
+                    startingWordIndex = i;
+
+                    // reset current line width back to width of the current word
+                    currentLineWidth = currentWordWidth;
+                } else {
+                    // didn't hit a new line yet. Add a space to the count.
+                    currentLineWidth += spaceWidth;
+                }
             }
+            // last line will have to be added.
+            String lastLine = String.join(" ", words.subList(startingWordIndex, words.size()));
+            wrappedLines.add(lastLine.trim() + " ");
         }
-        // last line will have to be added.
-        String lastLine = String.join(" ", words.subList(startingWordIndex, words.size()));
-        wrappedLines.add(lastLine.trim() + " ");
 
         return wrappedLines;
     }
