@@ -64,7 +64,7 @@ public class Main {
                         "Goodbye.",
                     Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
                 new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
-        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 205.0f, newPosition.getPageIndex(), sec1);
         System.out.println(newPosition);
 
 
