@@ -257,10 +257,9 @@ public class CustomTaggedPdfBuilder {
         currentTable.getCOSObject().setItem(COSName.A, attr);
         currentTable.setAlternateDescription(table.getSummary());
 
-        //Go through each row and add a TR structure element to the table structure element.
+        List<UpdatedPagePosition> aggregatedPositions = new ArrayList<>();
 
-        float maxReturnY = Float.NEGATIVE_INFINITY;
-        int maxPageNumber = Integer.MIN_VALUE;
+        //Go through each row and add a TR structure element to the table structure element.
         for (int i = 0; i < table.getRows().size(); i++) {
 
             //Go through each column and draw the cell and any cell's text with given alignment.
@@ -292,17 +291,20 @@ public class CustomTaggedPdfBuilder {
                 float cellY = y + table.getRowPosition(i);
                 PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
                 UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY);
-                if(updatedPagePosition.getY() > maxReturnY){
-                    maxReturnY = updatedPagePosition.getY();
-                }
-                if(updatedPagePosition.getPageIndex() > maxPageNumber){
-                    maxPageNumber = updatedPagePosition.getPageIndex();
-                }
+                aggregatedPositions.add(updatedPagePosition);
             }
 
         }
 
-        return new UpdatedPagePosition(maxReturnY, maxPageNumber);
+        final int returnPage = aggregatedPositions.stream()
+            .mapToInt(UpdatedPagePosition::getPageIndex)
+            .max()
+            .orElseThrow();
+
+        return aggregatedPositions.stream()
+            .filter(position -> position.getPageIndex() == returnPage)
+            .max(Comparator.comparing(UpdatedPagePosition::getY))
+            .orElseThrow();
 
     }
 
