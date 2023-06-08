@@ -24,11 +24,8 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
-import org.apache.xmpbox.schema.XmpSchemaException;
 import org.apache.xmpbox.xml.XmpSerializer;
 
-import javax.xml.transform.TransformerException;
-import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,8 +42,8 @@ public class CustomTaggedPdfBuilder {
     private final PDFont helveticaBoldFont;
     private final COSArray nums = new COSArray();
     private final COSArray numDictionaries = new COSArray();
-    private float PAGE_HEIGHT = PDRectangle.LETTER.getHeight();
-    public float PAGE_WIDTH = PDRectangle.LETTER.getWidth();
+    private final float PAGE_HEIGHT = PDRectangle.LETTER.getHeight();
+    public final float PAGE_WIDTH = PDRectangle.LETTER.getWidth();
 
     private final PageMargins pageMargins;
 
@@ -88,7 +85,7 @@ public class CustomTaggedPdfBuilder {
         // setup page 1 & ability at add more pages.
         prePageOne();
         addPage();
-        postPageOne(0);
+        afterAddPage(0);
 
         this.wrappedTextMultiplier = wrappedTextMultiplier;
 
@@ -163,7 +160,7 @@ public class CustomTaggedPdfBuilder {
 
 
                 addPage();
-                postPageOne(i+1);
+                afterAddPage(i+1);
 
 
                 //Set up the next marked content element with an MCID and create the containing P structure element.
@@ -284,11 +281,21 @@ public class CustomTaggedPdfBuilder {
 
             table.getRows().get(i).setHeight(newHeight);
 
+            float cellY;
+            if(y + newHeight > (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())) {
+                addPage();
+                afterAddPage(i+1);
+                pageIndex += 1;
+                cellY = pageMargins.getTopMargin();
+            } else {
+                cellY = y + table.getRowPosition(i);
+            }
+
             for(int j = 0; j < table.getRows().get(i).getCells().size(); j++) {
 
                 Cell currentCell = table.getCell(i, j);
                 float cellX = x + currentRow.getCellPosition(j);
-                float cellY = y + table.getRowPosition(i);
+
                 PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
                 UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY);
                 aggregatedPositions.add(updatedPagePosition);
@@ -470,7 +477,7 @@ public class CustomTaggedPdfBuilder {
         pdf.addPage(pages.get(pages.size() - 1));
     }
 
-    private void postPageOne(int value){
+    private void afterAddPage(int value){
         nums.add(COSInteger.get(value));
     }
 
