@@ -375,19 +375,19 @@ public class CustomTaggedPdfBuilder {
                 cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
                 cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
                 pageIndex,
-                StandardStructureTypes.P,
+                StandardStructureTypes.SPAN,
                 cellStructureElement);
             case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentCell.getFontSize() / 4.0f + 5,
                 pageIndex,
-                StandardStructureTypes.P,
+                StandardStructureTypes.SPAN,
                 cellStructureElement);
             case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
                 pageIndex,
-                StandardStructureTypes.P,
+                StandardStructureTypes.SPAN,
                 cellStructureElement);
             default -> throw new RuntimeException("invalid text justification used.");
         };
