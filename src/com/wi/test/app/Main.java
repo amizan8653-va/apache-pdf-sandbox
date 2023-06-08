@@ -44,11 +44,11 @@ public class Main {
         //Hard coded table2
         DataTable table2 = new DataTable("Table Summary 2");
         table2.addRow(new Row(Arrays.asList(
-                new Cell("Column \nHeader \n1 (Header)", Font.HELVETICA, 10, 35, PDConstants.TOP_ALIGN, true),
+                new Cell("Column \nHeader \n1 (Header)", Font.HELVETICA, 10, 45, PDConstants.TOP_ALIGN, true),
                 new Cell("Column \nHeader \n2 (Description)", Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN,  true),
                 new Cell("Column \nHeader \n3 (Text)",  Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, true))));
         table2.addRow(new Row(Arrays.asList(
-                new Cell("Row \nHeader \n1", Font.HELVETICA, 10, 35, PDConstants.TOP_ALIGN, false),
+                new Cell("Row \nHeader \n1", Font.HELVETICA, 10, 45, PDConstants.TOP_ALIGN, false),
                 new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                         "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                         "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
@@ -57,7 +57,7 @@ public class Main {
                     Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
                 new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
         table2.addRow(new Row(Arrays.asList(
-                new Cell("Row \nHeader \n2", Font.HELVETICA, 10, 35, PDConstants.TOP_ALIGN, false),
+                new Cell("Row \nHeader \n2", Font.HELVETICA, 10, 45, PDConstants.TOP_ALIGN, false),
                 new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                         "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                         "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
@@ -73,7 +73,7 @@ public class Main {
             0, newPosition.getY()  + 25, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
         System.out.println(newPosition);
 
-        List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");
+//        List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");
         // draw a bulleted list and try to tag it.
 //        formBuilder.drawBulletList(bulletedListStrings, 50, 300, sec1, 0);
 

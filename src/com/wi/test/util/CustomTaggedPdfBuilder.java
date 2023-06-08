@@ -257,7 +257,7 @@ public class CustomTaggedPdfBuilder {
             Row currentRow = table.getRows().get(i);
 
             List<List<String>> wrappedLinesPerCell = table.getRows().get(i).getCells().stream()
-                .map(cell -> computeWrappedLines(cell, cell.getWidth()))
+                .map(cell -> computeWrappedLines(cell, cell.getWidth() * 0.9f))
                 .collect(Collectors.toList());
 
             float maxFontSize = (float) table.getRows().get(i).getCells().stream()
