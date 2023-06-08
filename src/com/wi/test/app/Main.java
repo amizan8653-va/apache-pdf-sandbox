@@ -33,54 +33,50 @@ public class Main {
             CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(0,0,0,0), 1.5f);
             PDStructureElement sec1 = formBuilder.addRoot(0);
 
-            formBuilder.drawTextElement(
-                new Cell("PDF HEADER 1", Font.HELVETICA_BOLD,
-                    Color.BLUE.darker().darker(), 12, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
-                0, 0, sec1, StandardStructureTypes.H1, 0);
+//            formBuilder.drawTextElement(
+//                new Cell("PDF HEADER 1", Font.HELVETICA_BOLD,
+//                    Color.BLUE.darker().darker(), 14, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
+//                0, 0, sec1, StandardStructureTypes.H1, 0);
 
             UpdatedPagePosition newPosition = drawTableOne(formBuilder, sec1);
             System.out.println(newPosition);
 
 
-            //Hard coded table2
-            DataTable table2 = new DataTable("Table Summary 2");
-            table2.addRow(new Row(Arrays.asList(
-                    new Cell("Column \nHeader \n1 (Header)", Font.HELVETICA, 5, 35, PDConstants.TOP_ALIGN, true),
-                    new Cell("Column \nHeader \n2 (Description)", Font.HELVETICA, 5, 215, PDConstants.TOP_ALIGN,  true),
-                    new Cell("Column \nHeader \n3 (Text)",  Font.HELVETICA, 5, 75, PDConstants.TOP_ALIGN, true)),
-                30));
-            table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n1", Font.HELVETICA, 5, 35, PDConstants.TOP_ALIGN, false),
-                    new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "Goodbye.",
-                        Font.HELVETICA, 5, 215, PDConstants.TOP_ALIGN, false),
-                    new Cell("System Verification: N/A.", Font.HELVETICA, 5, 75, PDConstants.TOP_ALIGN, false)),
-                    50));
-            table2.addRow(new Row(Arrays.asList(
-                    new Cell("Row \nHeader \n2", Font.HELVETICA, 5, 35, PDConstants.TOP_ALIGN, false),
-                    new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                            "Goodbye.",
-                        Font.HELVETICA, 5, 215, PDConstants.TOP_ALIGN, false),
-                    new Cell("System Verification: N/A.", Font.HELVETICA, 5, 75, PDConstants.TOP_ALIGN, false)),
-
-                    40));
-            newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
-            System.out.println(newPosition);
-
-
-            newPosition = formBuilder.drawTextElement(
-                new Text(10, IntStream.range(0,500).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
-                0, newPosition.getY()  + 25, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
-            System.out.println(newPosition);
-
-            List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");
-            // draw a bulleted list and try to tag it.
-//            formBuilder.drawBulletList(bulletedListStrings, 50, 300, sec1, 0);
+//            //Hard coded table2
+//            DataTable table2 = new DataTable("Table Summary 2");
+//            table2.addRow(new Row(Arrays.asList(
+//                    new Cell("Column \nHeader \n1 (Header)", Font.HELVETICA, 10, 35, PDConstants.TOP_ALIGN, true),
+//                    new Cell("Column \nHeader \n2 (Description)", Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN,  true),
+//                    new Cell("Column \nHeader \n3 (Text)",  Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, true))));
+//            table2.addRow(new Row(Arrays.asList(
+//                    new Cell("Row \nHeader \n1", Font.HELVETICA, 10, 35, PDConstants.TOP_ALIGN, false),
+//                    new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
+//                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+//                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+//                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+//                            "Goodbye.",
+//                        Font.HELVETICA, 5, 215, PDConstants.TOP_ALIGN, false),
+//                    new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
+//            table2.addRow(new Row(Arrays.asList(
+//                    new Cell("Row \nHeader \n2", Font.HELVETICA, 10, 35, PDConstants.TOP_ALIGN, false),
+//                    new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
+//                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+//                            "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+//                            "Goodbye.",
+//                        Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
+//                    new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
+//            newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
+//            System.out.println(newPosition);
+//
+//
+//            newPosition = formBuilder.drawTextElement(
+//                new Text(12, IntStream.range(0,500).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
+//                0, newPosition.getY()  + 25, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
+//            System.out.println(newPosition);
+//
+//            List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");
+//            // draw a bulleted list and try to tag it.
+////            formBuilder.drawBulletList(bulletedListStrings, 50, 300, sec1, 0);
 
             formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
@@ -94,17 +90,14 @@ public class Main {
         //Hard coded table1
         DataTable table1 = new DataTable("Table Summary 1");
         table1.addRow(new Row(Arrays.asList(
-            new Cell("Row Header 1(ID):", Font.HELVETICA, 5, 100, PDConstants.LEFT_ALIGN,  true),
-            new Cell("56-8987", Font.HELVETICA, 5, 400, PDConstants.LEFT_ALIGN, false)),
-            15));
+            new Cell("Row Header 1(ID):", Font.HELVETICA, 14, 100, PDConstants.LEFT_ALIGN,  true),
+            new Cell("56-8987", Font.HELVETICA, 14, 500, PDConstants.LEFT_ALIGN, false))));
         table1.addRow(new Row(Arrays.asList(
-            new Cell("Row Header 2(Name):", Font.HELVETICA, 5, 100, PDConstants.LEFT_ALIGN, true),
-            new Cell("Some name", Font.HELVETICA, 5, 400, PDConstants.LEFT_ALIGN, false)),
-            15));
+            new Cell("Row Header 2(Name):", Font.HELVETICA, 14, 100, PDConstants.LEFT_ALIGN, true),
+            new Cell("Some name", Font.HELVETICA, 14, 500, PDConstants.LEFT_ALIGN, false))));
         table1.addRow(new Row(Arrays.asList(
-            new Cell("Row Header 3(Date):", Font.HELVETICA, 5, 100, PDConstants.LEFT_ALIGN, true),
-            new Cell("12/31/2016", Font.HELVETICA, 5, 400, PDConstants.LEFT_ALIGN, false)),
-            15));
-        return formBuilder.drawTable(table1, 50, 100, 0, sec1);
+            new Cell("Row Header 3(Date):", Font.HELVETICA, 14, 100, PDConstants.LEFT_ALIGN, true),
+            new Cell("12/31/2016", Font.HELVETICA, 14, 500, PDConstants.LEFT_ALIGN, false))));
+        return formBuilder.drawTable(table1, 50, 25, 0, sec1);
     }
 }

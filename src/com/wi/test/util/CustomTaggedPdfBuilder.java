@@ -137,7 +137,7 @@ public class CustomTaggedPdfBuilder {
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin();
+        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin() -(text.getFontSize() * this.wrappedTextMultiplier);
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
         for (int i = 0; i < wrappedLines.size(); i++) {
@@ -171,7 +171,7 @@ public class CustomTaggedPdfBuilder {
                 //Open up a stream to draw text at a given location.
                 contents.beginText();
                 contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin();
+                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin() -(text.getFontSize() * this.wrappedTextMultiplier);
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
 
@@ -316,6 +316,8 @@ public class CustomTaggedPdfBuilder {
     private UpdatedPagePosition drawCellContents(int pageIndex, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) throws Exception {
         //Draw the cell's text with a given alignment, and tag it.
         List<String> wrappedLines = computeWrappedLines(currentCell, currentCell.getWidth());
+        float newHeight = wrappedLines.size() * currentCell.getFontSize() * this.wrappedTextMultiplier;
+        currentRow.setHeight(newHeight);
         return switch (currentCell.getAlign()) {
             // Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,

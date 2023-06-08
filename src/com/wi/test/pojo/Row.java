@@ -4,9 +4,9 @@ import java.util.List;
 
 public class Row {
     private final List<Cell> cells;
-    private final float height;
-    public Row(List<Cell> cells, float height) {
-        this.height = height;
+    private float height;
+    public Row(List<Cell> cells) {
+        this.height = 0;
         this.cells = cells;
     }
 
@@ -26,4 +26,7 @@ public class Row {
         return height;
     }
 
+    public void setHeight(float newHeight) {
+        height = newHeight;
+    }
 }
