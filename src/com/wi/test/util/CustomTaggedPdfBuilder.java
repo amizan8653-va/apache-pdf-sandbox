@@ -282,7 +282,9 @@ public class CustomTaggedPdfBuilder {
             table.getRows().get(i).setHeight(newHeight);
 
             float cellY;
-            if(y + newHeight > (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())) {
+            System.out.println(y + (i + 1) * newHeight);
+            System.out.println((PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin()));
+            if((y + (i + 1) * newHeight) >= (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())){
                 addPage();
                 afterAddPage(i+1);
                 pageIndex += 1;
