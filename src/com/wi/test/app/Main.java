@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Main {
 
@@ -88,9 +89,11 @@ public class Main {
             0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
         System.out.println(newPosition);
 
-//        List<String> bulletedListStrings = List.of("test item 1", "test item 2", "test item 3");
+        List<Text> bulletedList = Stream.of("test item 1", "test item 2", "test item 3")
+            .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
+            .collect(Collectors.toList());
         // draw a bulleted list and try to tag it.
-//        formBuilder.drawBulletList(bulletedListStrings, 50, 300, sec1, 0);
+        formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
 
         formBuilder.saveAndClose("UAEXAMPLE.PDF");
 

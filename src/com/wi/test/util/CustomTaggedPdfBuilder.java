@@ -26,8 +26,10 @@ import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
 import org.apache.xmpbox.xml.XmpSerializer;
 
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -115,6 +117,38 @@ public class CustomTaggedPdfBuilder {
 //            PDStructureElement ListElementParagraphContainer = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listElementContainer);
 //        }
 //    }
+
+
+
+    @SneakyThrows
+    public UpdatedPagePosition drawBulletList(List<Text> items, float x, float y, int pageIndex, PDStructureElement parent) {
+
+        Font font =  items.get(0).getFont();
+        PDFont pdfFont = getPDFont(font);
+        float fontSize =  items.get(0).getFontSize();
+        Color color = items.get(0).getTextColor();
+        Text bulletText = new Text(fontSize, "\u2022", color, font);
+
+        float bulletWidth = pdfFont.getStringWidth(bulletText.getText()) / 1000 * fontSize;
+
+        List<List<String>> wrappedListItems =  items.stream()
+            .map(text -> computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin()))
+            .collect(Collectors.toList());
+
+        PDStructureElement pdfList = appendToTagTree(StandardStructureTypes.L, pages.get(pageIndex), parent);
+
+        UpdatedPagePosition updatedPagePosition = null;
+        float newY = y;
+        for(int i = 0; i < items.size(); i++){
+            PDStructureElement pdfListElement = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), pdfList);
+            drawSimpleText(bulletText, List.of("\u2022"), x, newY, pageIndex, StandardStructureTypes.LBL, pdfListElement);
+            Text text = items.get(i);
+            List<String> wrappedLines = wrappedListItems.get(i);
+            updatedPagePosition = drawSimpleText(text, wrappedLines, x + (bulletWidth * 1.5f), newY, pageIndex, StandardStructureTypes.L_BODY, pdfListElement);
+            newY = updatedPagePosition.getY();
+        }
+        return updatedPagePosition;
+    }
 
     @SneakyThrows
     public UpdatedPagePosition drawTextElement(Text text, float x, float y, PDStructureElement parent,
@@ -283,10 +317,6 @@ public class CustomTaggedPdfBuilder {
             table.getRows().get(i).setHeight(newHeight);
 
             float cellY;
-//            System.out.println((y + (i + 1) * newHeight));
-//            System.out.println((PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin()));
-//            System.out.println();
-
             if((y + (i + 1) * newHeight) >= (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())){
                 addPage();
                 afterAddPage(i+1);
