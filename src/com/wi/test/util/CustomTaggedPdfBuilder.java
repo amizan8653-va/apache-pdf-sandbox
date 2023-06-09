@@ -261,7 +261,6 @@ public class CustomTaggedPdfBuilder {
 
             //Go through each column and draw the cell and any cell's text with given alignment.
             PDStructureElement currentTR = appendToTagTree(StandardStructureTypes.TR, pages.get(pageIndex), currentTable);
-            Row currentRow = table.getRows().get(i);
 
             List<List<String>> wrappedLinesPerCell = table.getRows().get(i).getCells().stream()
                 .map(cell -> computeWrappedLines(cell, cell.getWidth() * 0.9f))
@@ -282,15 +281,20 @@ public class CustomTaggedPdfBuilder {
             table.getRows().get(i).setHeight(newHeight);
 
             float cellY;
+//            System.out.println((y + (i + 1) * newHeight));
+//            System.out.println((PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin()));
+//            System.out.println();
+
             if((y + (i + 1) * newHeight) >= (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())){
                 addPage();
                 afterAddPage(i+1);
                 pageIndex += 1;
-                cellY = pageMargins.getTopMargin();
-            } else {
-                cellY = y + table.getRowPosition(i);
+                y = pageMargins.getTopMargin();
             }
 
+            cellY = y + table.getRowPosition(i);
+
+            Row currentRow = table.getRows().get(i);
             for(int j = 0; j < table.getRows().get(i).getCells().size(); j++) {
 
                 Cell currentCell = table.getCell(i, j);
