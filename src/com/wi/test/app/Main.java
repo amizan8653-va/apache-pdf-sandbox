@@ -80,7 +80,7 @@ public class Main {
                 "Goodbye.",
                 Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
             new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
-        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 250.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 50.0f, newPosition.getPageIndex(), sec1, 5);
         System.out.println(newPosition);
 
 
@@ -112,6 +112,6 @@ public class Main {
         table1.addRow(new Row(Arrays.asList(
             new Cell("Row Header 3 (Date) BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH:", Font.HELVETICA, 10, 100, PDConstants.LEFT_ALIGN, true),
             new Cell("12/31/2016 BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH", Font.HELVETICA, 10, 200, PDConstants.LEFT_ALIGN, false))));
-        return formBuilder.drawTable(table1, 50, 25, 0, sec1);
+        return formBuilder.drawTable(table1, 50, 25, 0, sec1, 5);
     }
 }

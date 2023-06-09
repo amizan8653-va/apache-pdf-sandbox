@@ -95,7 +95,7 @@ public class CustomTaggedPdfBuilder {
         // setup page 1 & ability at add more pages.
         prePageOne();
         addPage();
-        afterAddPage(0);
+        postAddPage(0);
 
     }
 
@@ -120,10 +120,10 @@ public class CustomTaggedPdfBuilder {
         float newY = y;
         for(int i = 0; i < items.size(); i++){
             PDStructureElement pdfListElement = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), pdfList);
-            drawSimpleText(bulletText, List.of("\u2022"), x, newY, pageIndex, StandardStructureTypes.LBL, pdfListElement);
+            drawSimpleText(bulletText, List.of("\u2022"), x, newY, pageIndex, StandardStructureTypes.LBL, pdfListElement, 5);
             Text text = items.get(i);
             List<String> wrappedLines = wrappedListItems.get(i);
-            updatedPagePosition = drawSimpleText(text, wrappedLines, x + (bulletWidth * 1.5f), newY, pageIndex, StandardStructureTypes.L_BODY, pdfListElement);
+            updatedPagePosition = drawSimpleText(text, wrappedLines, x + (bulletWidth * 1.5f), newY, pageIndex, StandardStructureTypes.L_BODY, pdfListElement, 5);
             newY = updatedPagePosition.getY();
             pageIndex = updatedPagePosition.getPageIndex();
         }
@@ -137,12 +137,13 @@ public class CustomTaggedPdfBuilder {
         List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
 
         //Draws the given texts
-        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent);
+        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, 5);
     }
 
-    //Add text at a given location starting from the top-left corner.
+    // Add text at a given location starting from the top-left corner.
+    // this function is the core rendering logic shared by all.
     @SneakyThrows
-    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent){
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float extraSpaceBetweenLines){
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
         PDPageContentStream contents = new PDPageContentStream(
@@ -161,7 +162,7 @@ public class CustomTaggedPdfBuilder {
         contents.setNonStrokingColor(text.getTextColor());
         for (int i = 0; i < wrappedLines.size(); i++) {
             String line = wrappedLines.get(i);
-            float newOffset = -text.getFontSize();
+            float newOffset = -text.getFontSize() - extraSpaceBetweenLines;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
 
@@ -174,7 +175,7 @@ public class CustomTaggedPdfBuilder {
 
 
                 addPage();
-                afterAddPage(i+1);
+                postAddPage(i+1);
 
 
                 //Set up the next marked content element with an MCID and create the containing P structure element.
@@ -190,7 +191,8 @@ public class CustomTaggedPdfBuilder {
                 //Open up a stream to draw text at a given location.
                 contents.beginText();
                 contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin() -text.getFontSize();
+                newOffset = -text.getFontSize();
+                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin() + newOffset;
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
 
@@ -198,7 +200,7 @@ public class CustomTaggedPdfBuilder {
 
 
             contents.showText(line);
-            contents.newLineAtOffset(0, -text.getFontSize());
+            contents.newLineAtOffset(0, newOffset);
         }
         contents.endText();
 
@@ -257,7 +259,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    public UpdatedPagePosition drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent) {
+    public UpdatedPagePosition drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent, float extraSpaceBetweenLines) {
 
         COSDictionary attr = new COSDictionary();
         attr.setName(COSName.O, "Table");
@@ -291,14 +293,14 @@ public class CustomTaggedPdfBuilder {
                 .max()
                 .orElseThrow();
 
-            float newHeight = maxNumberOfLines * maxFontSize;
+            float newHeight = maxNumberOfLines * (maxFontSize + extraSpaceBetweenLines);
 
             table.getRows().get(i).setHeight(newHeight);
 
             float cellY;
             if((y + (i + 1) * newHeight) >= (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())){
                 addPage();
-                afterAddPage(i+1);
+                postAddPage(i+1);
                 pageIndex += 1;
                 y = pageMargins.getTopMargin();
                 rowIndexStart = i;
@@ -314,7 +316,7 @@ public class CustomTaggedPdfBuilder {
                 float cellX = x + currentRow.getCellPosition(j);
 
                 PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
-                UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY);
+                UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY, extraSpaceBetweenLines);
                 aggregatedPositions.add(updatedPagePosition);
             }
 
@@ -384,7 +386,7 @@ public class CustomTaggedPdfBuilder {
         return cellElement;
     }
 
-    private UpdatedPagePosition drawCellContents(int pageIndex, List<String> wrappedLines, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) {
+    private UpdatedPagePosition drawCellContents(int pageIndex, List<String> wrappedLines, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY, float extraSpaceBetweenLines) {
         //Draw the cell's text with a given alignment, and tag it.
         return switch (currentCell.getAlign()) {
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
@@ -392,19 +394,22 @@ public class CustomTaggedPdfBuilder {
                 cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
                 pageIndex,
                 StandardStructureTypes.SPAN,
-                cellStructureElement);
+                cellStructureElement,
+                extraSpaceBetweenLines);
             case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentCell.getFontSize() / 4.0f + 5,
                 pageIndex,
                 StandardStructureTypes.SPAN,
-                cellStructureElement);
+                cellStructureElement,
+                extraSpaceBetweenLines);
             case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
                 pageIndex,
                 StandardStructureTypes.SPAN,
-                cellStructureElement);
+                cellStructureElement,
+                extraSpaceBetweenLines);
             default -> throw new RuntimeException("invalid text justification used.");
         };
     }
@@ -493,7 +498,7 @@ public class CustomTaggedPdfBuilder {
         pdf.addPage(pages.get(pages.size() - 1));
     }
 
-    private void afterAddPage(int value){
+    private void postAddPage(int value){
         nums.add(COSInteger.get(value));
     }
 
