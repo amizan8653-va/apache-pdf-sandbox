@@ -58,10 +58,8 @@ public class CustomTaggedPdfBuilder {
     private final COSArray cosArrayForAdditionalPages;
     private final COSArray boxArray;
 
-    private final float wrappedTextMultiplier;
-
     @SneakyThrows
-    public CustomTaggedPdfBuilder(String title, PageMargins margins, float wrappedTextMultiplier) {
+    public CustomTaggedPdfBuilder(String title, PageMargins margins) {
         //Setup new document
         pdf = new PDDocument();
         pdf.setVersion(1.7f);
@@ -89,36 +87,7 @@ public class CustomTaggedPdfBuilder {
         addPage();
         afterAddPage(0);
 
-        this.wrappedTextMultiplier = wrappedTextMultiplier;
-
     }
-
-//    public void drawBulletList(List<String> items, float x, float y, PDStructureElement parent, int pageIndex) {
-//        PDStructureElement listContainer = appendToTagTree(StandardStructureTypes.L, pages.get(pageIndex), parent);
-//        for(String item: items){
-//            PDStructureElement listElementContainer = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), listContainer);
-//            PDStructureElement ListElementBulletElementContainer = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listElementContainer);
-//            appendToTagTree(pages.get(pageIndex), ListElementBulletElementContainer);
-//
-//            PDPageContentStream contents = new PDPageContentStream(
-//                pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
-//            setNextMarkedContentDictionary();
-//            contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-//
-//            //Draws the given text centered within the current table cell.
-//            drawSimpleText(Character.toString('\u2022'), x + 5, y + height + text.getFontSize(), contents);
-//
-//            //End the marked content and append it's P structure element to the containing P structure element.
-//            contents.endMarkedContent();
-//            appendToTagTree(pages.get(pageIndex), currentElem);
-//            contents.close();
-//
-//            // U+2022 = bullet point
-//            PDStructureElement ListElementParagraphContainer = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listElementContainer);
-//        }
-//    }
-
-
 
     @SneakyThrows
     public UpdatedPagePosition drawBulletList(List<Text> items, float x, float y, int pageIndex, PDStructureElement parent) {
@@ -146,6 +115,7 @@ public class CustomTaggedPdfBuilder {
             List<String> wrappedLines = wrappedListItems.get(i);
             updatedPagePosition = drawSimpleText(text, wrappedLines, x + (bulletWidth * 1.5f), newY, pageIndex, StandardStructureTypes.L_BODY, pdfListElement);
             newY = updatedPagePosition.getY();
+            pageIndex = updatedPagePosition.getPageIndex();
         }
         return updatedPagePosition;
     }
@@ -176,12 +146,12 @@ public class CustomTaggedPdfBuilder {
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin() -(text.getFontSize() * this.wrappedTextMultiplier);
+        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin() - text.getFontSize();
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
         for (int i = 0; i < wrappedLines.size(); i++) {
             String line = wrappedLines.get(i);
-            float newOffset = -(text.getFontSize() * this.wrappedTextMultiplier);
+            float newOffset = -text.getFontSize();
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
 
@@ -210,7 +180,7 @@ public class CustomTaggedPdfBuilder {
                 //Open up a stream to draw text at a given location.
                 contents.beginText();
                 contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin() -(text.getFontSize() * this.wrappedTextMultiplier);
+                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin() -text.getFontSize();
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
 
@@ -218,7 +188,7 @@ public class CustomTaggedPdfBuilder {
 
 
             contents.showText(line);
-            contents.newLineAtOffset(0, -(text.getFontSize() * this.wrappedTextMultiplier));
+            contents.newLineAtOffset(0, -text.getFontSize());
         }
         contents.endText();
 
@@ -312,7 +282,7 @@ public class CustomTaggedPdfBuilder {
                 .max()
                 .orElseThrow();
 
-            float newHeight = maxNumberOfLines * maxFontSize * this.wrappedTextMultiplier;
+            float newHeight = maxNumberOfLines * maxFontSize;
 
             table.getRows().get(i).setHeight(newHeight);
 

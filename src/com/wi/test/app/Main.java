@@ -30,7 +30,7 @@ public class Main {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:SSS");
         System.out.println(dateFormat.format(new Date()));
 
-        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(10,10,20,20), 1.5f);
+        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(10,10,20,20));
         PDStructureElement sec1 = formBuilder.addRoot(0);
 
         formBuilder.drawTextElement(
@@ -80,7 +80,7 @@ public class Main {
                 "Goodbye.",
                 Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
             new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
-        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 50.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 250.0f, newPosition.getPageIndex(), sec1);
         System.out.println(newPosition);
 
 
