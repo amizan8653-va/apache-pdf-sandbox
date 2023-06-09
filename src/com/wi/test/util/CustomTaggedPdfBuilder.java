@@ -297,7 +297,7 @@ public class CustomTaggedPdfBuilder {
 
             Row currentRow = table.getRows().get(i);
 
-            cellY = y + currentRow.getHeight() + table.getRowPosition(rowIndexStart, i);
+            cellY = y + table.getRowPosition(rowIndexStart, i);
 
             for(int j = 0; j < table.getRows().get(i).getCells().size(); j++) {
 
