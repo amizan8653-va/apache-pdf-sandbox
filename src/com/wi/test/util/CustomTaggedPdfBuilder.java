@@ -370,7 +370,6 @@ public class CustomTaggedPdfBuilder {
     private UpdatedPagePosition drawCellContents(int pageIndex, List<String> wrappedLines, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY) {
         //Draw the cell's text with a given alignment, and tag it.
         return switch (currentCell.getAlign()) {
-            // Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
                 cellY + currentRow.getHeight() / 2.0f + currentCell.getFontSize() / 4.0f,
