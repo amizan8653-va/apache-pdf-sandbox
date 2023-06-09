@@ -29,7 +29,7 @@ public class Main {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:SSS");
         System.out.println(dateFormat.format(new Date()));
 
-        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(0,0,0,0), 1.5f);
+        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(10,10,20,20), 1.5f);
         PDStructureElement sec1 = formBuilder.addRoot(0);
 
         formBuilder.drawTextElement(
@@ -84,7 +84,7 @@ public class Main {
 
 
         newPosition = formBuilder.drawTextElement(
-            new Text(12, IntStream.range(0,500).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
+            new Text(12, IntStream.range(0,400).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
             0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
         System.out.println(newPosition);
 
