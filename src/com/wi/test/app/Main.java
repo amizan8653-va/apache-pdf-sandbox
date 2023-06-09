@@ -11,11 +11,7 @@ import com.wi.test.pojo.DataTable;
 import com.wi.test.pojo.Row;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
-import org.apache.xmpbox.schema.XmpSchemaException;
-
-import javax.xml.transform.TransformerException;
 import java.awt.Color;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,7 +22,7 @@ import java.util.stream.Stream;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:SSS");
         System.out.println(dateFormat.format(new Date()));
 
@@ -34,8 +30,7 @@ public class Main {
         PDStructureElement sec1 = formBuilder.addRoot(0);
 
         formBuilder.drawTextElement(
-            new Cell("PDF HEADER 1", Font.HELVETICA_BOLD,
-                Color.BLUE.darker().darker(), 14, formBuilder.PAGE_WIDTH - 100, PDConstants.LEFT_ALIGN),
+            new Text(14, "PDF HEADER 1",Color.BLUE.darker().darker(), Font.HELVETICA_BOLD),
             0, 0, sec1, StandardStructureTypes.H1, 0);
 
         UpdatedPagePosition newPosition = drawTableOne(formBuilder, sec1);
@@ -89,7 +84,9 @@ public class Main {
             0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
         System.out.println(newPosition);
 
-        List<Text> bulletedList = Stream.of("test item 1", "test item 2", "test item 3")
+        List<Text> bulletedList = Stream.of("test item 1", "test item 2", "test item 3",
+                "test item 4", "test item 5", "test item 6",
+                "test item 7", "test item 8", "test item 9")
             .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
             .collect(Collectors.toList());
         // draw a bulleted list and try to tag it.
@@ -100,7 +97,7 @@ public class Main {
         System.out.println(dateFormat.format(new Date()));
     }
 
-    private static UpdatedPagePosition drawTableOne(CustomTaggedPdfBuilder formBuilder, PDStructureElement sec1) throws Exception {
+    private static UpdatedPagePosition drawTableOne(CustomTaggedPdfBuilder formBuilder, PDStructureElement sec1) {
         //Hard coded table1
         DataTable table1 = new DataTable("Table Summary 1");
         table1.addRow(new Row(Arrays.asList(

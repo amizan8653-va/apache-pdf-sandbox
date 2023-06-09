@@ -119,6 +119,14 @@ public class CustomTaggedPdfBuilder {
         UpdatedPagePosition updatedPagePosition = null;
         float newY = y;
         for(int i = 0; i < items.size(); i++){
+
+            if((y + fontSize) >= (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())){
+                addPage();
+                postAddPage(i+1);
+                pageIndex += 1;
+                newY = pageMargins.getTopMargin();
+            }
+
             PDStructureElement pdfListElement = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), pdfList);
             drawSimpleText(bulletText, List.of("\u2022"), x, newY, pageIndex, StandardStructureTypes.LBL, pdfListElement, 5);
             Text text = items.get(i);
