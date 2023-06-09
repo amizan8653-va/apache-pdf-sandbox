@@ -146,7 +146,7 @@ public class CustomTaggedPdfBuilder {
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin() - text.getFontSize();
+        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin();
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
         for (int i = 0; i < wrappedLines.size(); i++) {
