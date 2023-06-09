@@ -23,9 +23,9 @@ public class DataTable {
         return rows.get(row).getCells().get(col);
     }
 
-    public float getRowPosition(int rowIndex) {
+    public float getRowPosition(int rowIndexStart, int rowIndexEnd) {
         float currentPosition = 0;
-        for (int i = 0; i < rowIndex; i++) {
+        for (int i = rowIndexStart; i < rowIndexEnd; i++) {
             currentPosition += rows.get(i).getHeight();
         }
         return currentPosition;

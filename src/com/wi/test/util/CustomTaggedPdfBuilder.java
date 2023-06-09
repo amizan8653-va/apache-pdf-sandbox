@@ -256,6 +256,8 @@ public class CustomTaggedPdfBuilder {
 
         List<UpdatedPagePosition> aggregatedPositions = new ArrayList<>();
 
+        int rowIndexStart = 0;
+
         //Go through each row and add a TR structure element to the table structure element.
         for (int i = 0; i < table.getRows().size(); i++) {
 
@@ -290,11 +292,13 @@ public class CustomTaggedPdfBuilder {
                 afterAddPage(i+1);
                 pageIndex += 1;
                 y = pageMargins.getTopMargin();
+                rowIndexStart = i;
             }
 
-            cellY = y + table.getRowPosition(i);
-
             Row currentRow = table.getRows().get(i);
+
+            cellY = y + currentRow.getHeight() + table.getRowPosition(rowIndexStart, i);
+
             for(int j = 0; j < table.getRows().get(i).getCells().size(); j++) {
 
                 Cell currentCell = table.getCell(i, j);

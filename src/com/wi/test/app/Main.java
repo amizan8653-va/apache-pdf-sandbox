@@ -52,7 +52,6 @@ public class Main {
                 new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
                         "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                         "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
-                        "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                         "Goodbye.",
                     Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
                 new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
@@ -64,7 +63,15 @@ public class Main {
                         "Goodbye.",
                     Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
                 new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
-        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 205.0f, newPosition.getPageIndex(), sec1);
+        table2.addRow(new Row(Arrays.asList(
+            new Cell("Row \nHeader \n3", Font.HELVETICA, 10, 45, PDConstants.TOP_ALIGN, false),
+            new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
+                "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+                "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+                "Goodbye.",
+                Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
+            new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
+        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 50.0f, newPosition.getPageIndex(), sec1);
         System.out.println(newPosition);
 
 
