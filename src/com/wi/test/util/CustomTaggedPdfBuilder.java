@@ -143,7 +143,7 @@ public class CustomTaggedPdfBuilder {
     // Add text at a given location starting from the top-left corner.
     // this function is the core rendering logic shared by all.
     @SneakyThrows
-    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float extraSpaceBetweenLines){
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines){
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
         PDPageContentStream contents = new PDPageContentStream(
@@ -162,7 +162,7 @@ public class CustomTaggedPdfBuilder {
         contents.setNonStrokingColor(text.getTextColor());
         for (int i = 0; i < wrappedLines.size(); i++) {
             String line = wrappedLines.get(i);
-            float newOffset = -text.getFontSize() - extraSpaceBetweenLines;
+            float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
 
@@ -259,7 +259,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    public UpdatedPagePosition drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent, float extraSpaceBetweenLines) {
+    public UpdatedPagePosition drawTable(DataTable table, float x, float y, int pageIndex, PDStructureElement parent, float spaceBetweenLines) {
 
         COSDictionary attr = new COSDictionary();
         attr.setName(COSName.O, "Table");
@@ -293,7 +293,7 @@ public class CustomTaggedPdfBuilder {
                 .max()
                 .orElseThrow();
 
-            float newHeight = maxNumberOfLines * (maxFontSize + extraSpaceBetweenLines);
+            float newHeight = maxNumberOfLines * (maxFontSize + spaceBetweenLines);
 
             table.getRows().get(i).setHeight(newHeight);
 
@@ -316,7 +316,7 @@ public class CustomTaggedPdfBuilder {
                 float cellX = x + currentRow.getCellPosition(j);
 
                 PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
-                UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY, extraSpaceBetweenLines);
+                UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY, spaceBetweenLines);
                 aggregatedPositions.add(updatedPagePosition);
             }
 
@@ -386,7 +386,7 @@ public class CustomTaggedPdfBuilder {
         return cellElement;
     }
 
-    private UpdatedPagePosition drawCellContents(int pageIndex, List<String> wrappedLines, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY, float extraSpaceBetweenLines) {
+    private UpdatedPagePosition drawCellContents(int pageIndex, List<String> wrappedLines, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY, float spaceBetweenLines) {
         //Draw the cell's text with a given alignment, and tag it.
         return switch (currentCell.getAlign()) {
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
@@ -395,21 +395,21 @@ public class CustomTaggedPdfBuilder {
                 pageIndex,
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
-                extraSpaceBetweenLines);
+                spaceBetweenLines);
             case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentCell.getFontSize() / 4.0f + 5,
                 pageIndex,
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
-                extraSpaceBetweenLines);
+                spaceBetweenLines);
             case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
                 pageIndex,
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
-                extraSpaceBetweenLines);
+                spaceBetweenLines);
             default -> throw new RuntimeException("invalid text justification used.");
         };
     }
