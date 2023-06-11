@@ -41,6 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -103,15 +104,15 @@ public class CustomTaggedPdfBuilder {
     public UpdatedPagePosition drawBulletList(List<Text> items, float x, float y, int pageIndex, PDStructureElement parent) {
 
         Font font =  items.get(0).getFont();
-        PDFont pdfFont = getPDFont(font);
+        PDFont pdFont = getPDFont(font);
         float fontSize =  items.get(0).getFontSize();
-        Color color = items.get(0).getTextColor();
-        Text bulletText = new Text(fontSize, "\u2022", color, font);
 
-        float bulletWidth = pdfFont.getStringWidth(bulletText.getText()) / 1000 * fontSize;
+        final var prefix = "\u2022 ";
+        final float prefixWidth = pdFont.getStringWidth(prefix) / 1000.0f * fontSize;
+        final var lineLimit = PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin() - prefixWidth;
 
         List<List<String>> wrappedListItems =  items.stream()
-            .map(text -> computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin()))
+            .map(text -> computeWrappedLines(text, lineLimit))
             .collect(Collectors.toList());
 
         PDStructureElement pdfList = appendToTagTree(StandardStructureTypes.L, pages.get(pageIndex), parent);
@@ -120,22 +121,96 @@ public class CustomTaggedPdfBuilder {
         float newY = y;
         for(int i = 0; i < items.size(); i++){
 
-            if((y + fontSize) >= (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())){
-                addPage();
-                postAddPage(i+1);
-                pageIndex += 1;
-                newY = pageMargins.getTopMargin();
-            }
-
             PDStructureElement pdfListElement = appendToTagTree(StandardStructureTypes.LI, pages.get(pageIndex), pdfList);
-            drawSimpleText(bulletText, List.of("\u2022"), x, newY, pageIndex, StandardStructureTypes.LBL, pdfListElement, 5);
             Text text = items.get(i);
             List<String> wrappedLines = wrappedListItems.get(i);
-            updatedPagePosition = drawSimpleText(text, wrappedLines, x + (bulletWidth * 1.5f), newY, pageIndex, StandardStructureTypes.L_BODY, pdfListElement, 5);
+            updatedPagePosition = drawBulletListItem(prefix, text, wrappedLines, x, newY, pageIndex, pdfListElement, 5);
             newY = updatedPagePosition.getY();
             pageIndex = updatedPagePosition.getPageIndex();
         }
         return updatedPagePosition;
+    }
+
+    @SneakyThrows
+    private UpdatedPagePosition drawBulletListItem(String prefix, Text text, List<String> wrappedLines, float x, float y, int pageIndex, PDStructureElement listItemParent, float spaceBetweenListItems){
+
+        //Set up the next marked content element with an MCID and create the containing P structure element.
+        PDPageContentStream contents = new PDPageContentStream(
+            pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
+        setNextMarkedContentDictionary();
+        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
+        // compute prefix width
+        Font font =  text.getFont();
+        PDFont pdFont = getPDFont(font);
+        float fontSize =  text.getFontSize();
+        final float prefixWidth = pdFont.getStringWidth(prefix) / 1000.0f * fontSize;
+
+
+
+        //Open up a stream to draw text at a given location.
+        contents.beginText();
+        contents.setFont(getPDFont(text.getFont()), text.getFontSize());
+        float invertedYAxisOffset = PAGE_HEIGHT - y;
+        contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+        contents.setNonStrokingColor(text.getTextColor());
+        for (int i = 0; i < wrappedLines.size(); i++) {
+            // append StandardStructureTypes.LBL && StandardStructureTypes.L_BODY to the LI Parent element given
+            float newOffset = -text.getFontSize() - spaceBetweenListItems;
+            invertedYAxisOffset += newOffset;
+            if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
+
+                contents.endText();
+
+                //End the marked content and append it's P structure element to the containing P structure element.
+                contents.endMarkedContent();
+                appendToTagTree(pages.get(pageIndex), listItemParent);
+                contents.close();
+
+
+                addPage();
+                postAddPage(i+1);
+
+
+                //Set up the next marked content element with an MCID and create the containing P structure element.
+                pageIndex += 1;
+                contents = new PDPageContentStream(
+                    pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
+                setNextMarkedContentDictionary();
+                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
+
+                //Open up a stream to draw text at a given location.
+                contents.beginText();
+                contents.setFont(getPDFont(text.getFont()), text.getFontSize());
+                newOffset = -text.getFontSize() - this.pageMargins.getTopMargin();
+                invertedYAxisOffset = PAGE_HEIGHT + newOffset;
+                contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+                contents.setNonStrokingColor(text.getTextColor());
+
+            }
+
+            appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
+
+            contents.showText(prefix);
+            contents.newLineAtOffset(prefixWidth, 0);
+
+            appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
+            String line = wrappedLines.get(i);
+            contents.showText(line);
+            contents.newLineAtOffset(0, newOffset);
+
+        }
+        contents.endText();
+
+
+        //End the marked content and append it's P structure element to the containing P structure element.
+        contents.endMarkedContent();
+        appendToTagTree(pages.get(pageIndex), listItemParent);
+        contents.close();
+
+        return new UpdatedPagePosition(PAGE_HEIGHT - invertedYAxisOffset, pageIndex);
+
     }
 
     @SneakyThrows
@@ -165,11 +240,10 @@ public class CustomTaggedPdfBuilder {
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        float invertedYAxisOffset = PAGE_HEIGHT - y - this.pageMargins.getTopMargin();
+        float invertedYAxisOffset = PAGE_HEIGHT - y;
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
         for (int i = 0; i < wrappedLines.size(); i++) {
-            String line = wrappedLines.get(i);
             float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
@@ -199,14 +273,14 @@ public class CustomTaggedPdfBuilder {
                 //Open up a stream to draw text at a given location.
                 contents.beginText();
                 contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                newOffset = -text.getFontSize();
-                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin() + newOffset;
+                newOffset = -text.getFontSize() - this.pageMargins.getTopMargin();
+                invertedYAxisOffset = PAGE_HEIGHT + newOffset;
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
 
             }
 
-
+            String line = wrappedLines.get(i);
             contents.showText(line);
             contents.newLineAtOffset(0, newOffset);
         }

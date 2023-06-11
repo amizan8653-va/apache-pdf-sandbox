@@ -19,11 +19,4 @@ public class Cell extends Text {
         this.header = header;
     }
 
-    public Cell(String text, Font font, Color textColor, int fontSize, float width, String align) {
-        super(fontSize, text, textColor, font);
-        this.width = width;;
-        this.align = align;
-        this.header = false;
-    }
-
 }

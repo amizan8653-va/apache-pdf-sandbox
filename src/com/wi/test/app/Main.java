@@ -80,7 +80,12 @@ public class Main {
 
 
         newPosition = formBuilder.drawTextElement(
-            new Text(12, IntStream.range(0,400).mapToObj(integer -> String.format("This is a very long string %d. ", integer)).collect(Collectors.joining()), Color.BLACK, Font.HELVETICA),
+            new Text(12,
+                IntStream.range(0,400)
+                    .mapToObj(integer -> String.format("This is a very long string %d. ", integer))
+                    .collect(Collectors.joining()),
+                Color.BLACK,
+                Font.HELVETICA),
             0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
         System.out.println(newPosition);
 
