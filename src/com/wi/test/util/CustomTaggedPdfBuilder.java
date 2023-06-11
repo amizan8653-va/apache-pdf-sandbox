@@ -9,8 +9,6 @@ import com.wi.test.pojo.PageMargins;
 import com.wi.test.pojo.Row;
 import com.wi.test.pojo.Text;
 import com.wi.test.pojo.UpdatedPagePosition;
-import lombok.Builder;
-import lombok.Getter;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSFloat;
@@ -195,7 +193,7 @@ public class CustomTaggedPdfBuilder {
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
                 var newPageVars = handlePageOverflow(contents, pageIndex, listItemParent, text, x);
                 pageIndex = newPageVars.getNewPageIndex();
-                invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
+                invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset() - text.getFontSize() - spaceBetweenListItems;
                 contents = newPageVars.getNewContent();
             }
 
