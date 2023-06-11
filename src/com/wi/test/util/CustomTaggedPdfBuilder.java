@@ -4,10 +4,13 @@ import com.wi.test.constants.PDConstants;
 import com.wi.test.enums.Font;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
+import com.wi.test.pojo.NewPageRelatedVariables;
 import com.wi.test.pojo.PageMargins;
 import com.wi.test.pojo.Row;
 import com.wi.test.pojo.Text;
 import com.wi.test.pojo.UpdatedPagePosition;
+import lombok.Builder;
+import lombok.Getter;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSFloat;
@@ -94,7 +97,6 @@ public class CustomTaggedPdfBuilder {
         // setup page 1 & ability at add more pages.
         prePageOne();
         addPage();
-        postAddPage(0);
 
     }
 
@@ -130,6 +132,41 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
+    private NewPageRelatedVariables handlePageOverflow(PDPageContentStream oldContentStream, int pageIndex, PDStructureElement listItemParent, Text text, float x){
+        oldContentStream.endText();
+
+        //End the marked content and append it's P structure element to the containing P structure element.
+        oldContentStream.endMarkedContent();
+        appendToTagTree(pages.get(pageIndex), listItemParent);
+        oldContentStream.close();
+
+
+        addPage();
+
+
+        //Set up the next marked content element with an MCID and create the containing P structure element.
+        pageIndex += 1;
+        PDPageContentStream newContentStream = new PDPageContentStream(
+            pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
+        setNextMarkedContentDictionary();
+        newContentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
+
+        //Open up a stream to draw text at a given location.
+        newContentStream.beginText();
+        newContentStream.setFont(getPDFont(text.getFont()), text.getFontSize());
+        float newInvertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin();
+        newContentStream.newLineAtOffset(x + this.pageMargins.getLeftMargin(), newInvertedYAxisOffset);
+        newContentStream.setNonStrokingColor(text.getTextColor());
+
+        return NewPageRelatedVariables.builder()
+            .newContent(newContentStream)
+            .newPageIndex(pageIndex)
+            .newInvertedYAxisOffset(newInvertedYAxisOffset)
+            .build();
+    }
+
+    @SneakyThrows
     private UpdatedPagePosition drawBulletListItem(String prefix, Text text, List<String> wrappedLines, float x, float y, int pageIndex, PDStructureElement listItemParent, float spaceBetweenListItems){
 
         // compute prefix width
@@ -156,33 +193,10 @@ public class CustomTaggedPdfBuilder {
             float newOffset = -text.getFontSize() - spaceBetweenListItems;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
-                contents.endText();
-
-                //End the marked content and append it's P structure element to the containing P structure element.
-                contents.endMarkedContent();
-                appendToTagTree(pages.get(pageIndex), listItemParent);
-                contents.close();
-
-
-                addPage();
-                postAddPage(i+1);
-
-
-                //Set up the next marked content element with an MCID and create the containing P structure element.
-                pageIndex += 1;
-                contents = new PDPageContentStream(
-                    pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
-                setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
-
-                //Open up a stream to draw text at a given location.
-                contents.beginText();
-                contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin();
-                contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
-                contents.setNonStrokingColor(text.getTextColor());
-
+                var newPageVars = handlePageOverflow(contents, pageIndex, listItemParent, text, x);
+                pageIndex = newPageVars.getNewPageIndex();
+                invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
+                contents = newPageVars.getNewContent();
             }
 
             if(i == 0) {
@@ -256,33 +270,11 @@ public class CustomTaggedPdfBuilder {
             float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
-
-                contents.endText();
-
-                contents.endMarkedContent();
-                appendToTagTree(pages.get(pageIndex), currentElem);
-                contents.close();
-
-
-                addPage();
-                postAddPage(i+1);
-
-                pageIndex += 1;
-                contents = new PDPageContentStream(
-                    pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
-                setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
-
-                //Open up a stream to draw text at a given location.
-                contents.beginText();
-                contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin();
-                contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
-                contents.setNonStrokingColor(text.getTextColor());
-
+                var newPageVars = handlePageOverflow(contents, pageIndex, currentElem, text, x);
+                pageIndex = newPageVars.getNewPageIndex();
+                invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
+                contents = newPageVars.getNewContent();
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
-
             }
 
             String line = wrappedLines.get(i);
@@ -387,7 +379,6 @@ public class CustomTaggedPdfBuilder {
             float cellY;
             if((y + (i + 1) * newHeight) >= (PAGE_HEIGHT - pageMargins.getBottomMargin() - pageMargins.getTopMargin())){
                 addPage();
-                postAddPage(i+1);
                 pageIndex += 1;
                 y = pageMargins.getTopMargin();
                 rowIndexStart = i;
@@ -583,10 +574,6 @@ public class CustomTaggedPdfBuilder {
         page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(0));
         pages.add(page);
         pdf.addPage(pages.get(pages.size() - 1));
-    }
-
-    private void postAddPage(int value){
-        nums.add(COSInteger.get(value));
     }
 
     //Adds the parent tree to root struct element to identify tagged content
