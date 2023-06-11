@@ -159,7 +159,6 @@ public class CustomTaggedPdfBuilder {
             float newOffset = -text.getFontSize() - spaceBetweenListItems;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
-
                 contents.endText();
 
                 //End the marked content and append it's P structure element to the containing P structure element.
@@ -183,7 +182,7 @@ public class CustomTaggedPdfBuilder {
                 //Open up a stream to draw text at a given location.
                 contents.beginText();
                 contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                newOffset = -text.getFontSize() - this.pageMargins.getTopMargin();
+                newOffset = -this.pageMargins.getTopMargin();
                 invertedYAxisOffset = PAGE_HEIGHT + newOffset;
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
@@ -277,10 +276,11 @@ public class CustomTaggedPdfBuilder {
                 //Open up a stream to draw text at a given location.
                 contents.beginText();
                 contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                newOffset = -text.getFontSize() - this.pageMargins.getTopMargin();
-                invertedYAxisOffset = PAGE_HEIGHT + newOffset;
+                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin();
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
+
+
 
             }
 
