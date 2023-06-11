@@ -242,6 +242,8 @@ public class CustomTaggedPdfBuilder {
 
         List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
 
+        y = y + this.pageMargins.getTopMargin();
+
         //Draws the given texts
         return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, 5);
     }

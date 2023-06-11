@@ -26,7 +26,7 @@ public class Main {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:SSS");
         System.out.println(dateFormat.format(new Date()));
 
-        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(10,10,20,20));
+        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,0,20,20));
         PDStructureElement sec1 = formBuilder.addRoot(0);
 
         formBuilder.drawTextElement(
