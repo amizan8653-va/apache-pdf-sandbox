@@ -191,7 +191,8 @@ public class CustomTaggedPdfBuilder {
             float newOffset = -text.getFontSize() - spaceBetweenListItems;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
-                var newPageVars = handlePageOverflow(contents, pageIndex, listItemParent, text, x);
+                float continuationX = i == 0 ? x : x + prefixWidth;
+                var newPageVars = handlePageOverflow(contents, pageIndex, listItemParent, text, continuationX);
                 pageIndex = newPageVars.getNewPageIndex();
                 invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset() - text.getFontSize() - spaceBetweenListItems;
                 contents = newPageVars.getNewContent();

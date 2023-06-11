@@ -95,18 +95,17 @@ public class Main {
                 "test item 3. This will be a very long string that will end up being more than 1 line when rendered. " +
                     "It's not quite there just after that first sentence, but it will be after the 2nd.",
                 "test item 4",
-                "test item 5",
+                "test item 5. This will be a very long string that will end up being more than 1 line when rendered. " +
+                    "It's not quite there just after that first sentence, but it will be after the 2nd.",
                 "test item 6",
-                "test item 7",
-                "test item 8",
-                "test item 9",
-                "test item 10",
-                "test item 11",
-                "test item 12")
+                "test item 7")
             .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
             .collect(Collectors.toList());
-        // draw a bulleted list and try to tag it.
-        formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
+        // test extra x padding, and also test page overflow halfway through bullet point.
+        newPosition = formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
+
+        // test no extra x padding, and also test page overflow at start of new bullet point.
+        formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 600.0f, newPosition.getPageIndex(), sec1);
 
         formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
