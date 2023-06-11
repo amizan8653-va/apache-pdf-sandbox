@@ -190,14 +190,19 @@ public class CustomTaggedPdfBuilder {
 
             }
 
-            appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
+            var bulletTagElement = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
 
             contents.showText(prefix);
             contents.newLineAtOffset(prefixWidth, 0);
 
-            appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
+            appendToTagTree(pages.get(pageIndex), bulletTagElement);
+
+            var listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
             String line = wrappedLines.get(i);
             contents.showText(line);
+
+            appendToTagTree(pages.get(pageIndex), listTextTagElement);
+
             contents.newLineAtOffset(0, newOffset);
 
         }
@@ -206,7 +211,6 @@ public class CustomTaggedPdfBuilder {
 
         //End the marked content and append it's P structure element to the containing P structure element.
         contents.endMarkedContent();
-        appendToTagTree(pages.get(pageIndex), listItemParent);
         contents.close();
 
         return new UpdatedPagePosition(PAGE_HEIGHT - invertedYAxisOffset, pageIndex);
