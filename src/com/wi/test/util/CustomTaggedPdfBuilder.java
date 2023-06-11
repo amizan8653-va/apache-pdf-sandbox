@@ -259,7 +259,6 @@ public class CustomTaggedPdfBuilder {
 
                 contents.endText();
 
-                //End the marked content and append it's P structure element to the containing P structure element.
                 contents.endMarkedContent();
                 appendToTagTree(pages.get(pageIndex), currentElem);
                 contents.close();
@@ -268,15 +267,11 @@ public class CustomTaggedPdfBuilder {
                 addPage();
                 postAddPage(i+1);
 
-
-                //Set up the next marked content element with an MCID and create the containing P structure element.
                 pageIndex += 1;
                 contents = new PDPageContentStream(
                     pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
                 setNextMarkedContentDictionary();
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
-                currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
 
                 //Open up a stream to draw text at a given location.
@@ -286,7 +281,7 @@ public class CustomTaggedPdfBuilder {
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
 
-
+                currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
             }
 
