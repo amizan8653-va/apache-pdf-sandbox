@@ -36,12 +36,10 @@ import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
 import org.apache.xmpbox.xml.XmpSerializer;
 
-import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -134,28 +132,27 @@ public class CustomTaggedPdfBuilder {
     @SneakyThrows
     private UpdatedPagePosition drawBulletListItem(String prefix, Text text, List<String> wrappedLines, float x, float y, int pageIndex, PDStructureElement listItemParent, float spaceBetweenListItems){
 
-        //Set up the next marked content element with an MCID and create the containing P structure element.
-        PDPageContentStream contents = new PDPageContentStream(
-            pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
-        setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
         // compute prefix width
         Font font =  text.getFont();
         PDFont pdFont = getPDFont(font);
         float fontSize =  text.getFontSize();
         final float prefixWidth = pdFont.getStringWidth(prefix) / 1000.0f * fontSize;
 
+        float invertedYAxisOffset = PAGE_HEIGHT - y;
 
+        //Set up the next marked content element with an MCID and create the containing P structure element.
+        PDPageContentStream contents = new PDPageContentStream(
+            pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
+        setNextMarkedContentDictionary();
+        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        float invertedYAxisOffset = PAGE_HEIGHT - y;
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
+        PDStructureElement listTextTagElement = null;
         for (int i = 0; i < wrappedLines.size(); i++) {
-            // append StandardStructureTypes.LBL && StandardStructureTypes.L_BODY to the LI Parent element given
             float newOffset = -text.getFontSize() - spaceBetweenListItems;
             invertedYAxisOffset += newOffset;
             if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
@@ -182,23 +179,27 @@ public class CustomTaggedPdfBuilder {
                 //Open up a stream to draw text at a given location.
                 contents.beginText();
                 contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-                newOffset = -this.pageMargins.getTopMargin();
-                invertedYAxisOffset = PAGE_HEIGHT + newOffset;
+                invertedYAxisOffset = PAGE_HEIGHT - this.pageMargins.getTopMargin();
                 contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
                 contents.setNonStrokingColor(text.getTextColor());
 
             }
 
-            var bulletTagElement = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
+            if(i == 0) {
+                var bulletTagElement = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
+                contents.showText(prefix);
 
-            contents.showText(prefix);
-            contents.newLineAtOffset(prefixWidth, 0);
+                contents.newLineAtOffset(prefixWidth, 0);
 
-            appendToTagTree(pages.get(pageIndex), bulletTagElement);
+                appendToTagTree(pages.get(pageIndex), bulletTagElement);
+                listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
+                String line = wrappedLines.get(i);
+                contents.showText(line);
+            } else {
+                String line = wrappedLines.get(i);
+                contents.showText(line);
+            }
 
-            var listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
-            String line = wrappedLines.get(i);
-            contents.showText(line);
 
             appendToTagTree(pages.get(pageIndex), listTextTagElement);
 

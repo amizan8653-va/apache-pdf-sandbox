@@ -89,10 +89,20 @@ public class Main {
             0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
         System.out.println(newPosition);
 
-        List<Text> bulletedList = Stream.of("test item 1", "test item 2", "test item 3",
-                "test item 4", "test item 5", "test item 6",
-                "test item 7", "test item 8", "test item 9",
-                "test item 10", "test item 11", "test item 12")
+        List<Text> bulletedList = Stream.of(
+            "test item 1",
+                "test item 2",
+                "test item 3. This will be a very long string that will end up being more than 1 line when rendered. " +
+                    "It's not quite there just after that first sentence, but it will be after the 2nd.",
+                "test item 4",
+                "test item 5",
+                "test item 6",
+                "test item 7",
+                "test item 8",
+                "test item 9",
+                "test item 10",
+                "test item 11",
+                "test item 12")
             .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
             .collect(Collectors.toList());
         // draw a bulleted list and try to tag it.
