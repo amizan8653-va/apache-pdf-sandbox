@@ -192,6 +192,10 @@ public class CustomTaggedPdfBuilder {
                 contents.newLineAtOffset(prefixWidth, 0);
 
                 appendToTagTree(pages.get(pageIndex), bulletTagElement);
+
+                contents.endMarkedContent();
+                setNextMarkedContentDictionary();
+                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
                 listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
                 String line = wrappedLines.get(i);
                 contents.showText(line);
