@@ -193,9 +193,13 @@ public class CustomTaggedPdfBuilder {
 
                 appendToTagTree(pages.get(pageIndex), bulletTagElement);
 
+                // make the bullet point be tagged in just <LBL>, and the text right after separately in <LBODY>
                 contents.endMarkedContent();
+
+                // tag the list element's text body
                 setNextMarkedContentDictionary();
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
                 listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
                 String line = wrappedLines.get(i);
                 contents.showText(line);
@@ -204,14 +208,11 @@ public class CustomTaggedPdfBuilder {
                 contents.showText(line);
             }
 
-
-            appendToTagTree(pages.get(pageIndex), listTextTagElement);
-
             contents.newLineAtOffset(0, newOffset);
 
         }
         contents.endText();
-
+        appendToTagTree(pages.get(pageIndex), listTextTagElement);
 
         //End the marked content and append it's P structure element to the containing P structure element.
         contents.endMarkedContent();
