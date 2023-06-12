@@ -311,12 +311,19 @@ public class CustomTaggedPdfBuilder {
 
                 contents.setNonStrokingColor(text.getTextColor());
                 contents.showText(beforeLinkText);
+                appendToTagTree(pages.get(pageIndex), currentElem);
+
+                var linkElem = appendToTagTree(StandardStructureTypes.LINK, pages.get(pageIndex), currentElem);
                 contents.setNonStrokingColor(Color.blue);
                 contents.newLineAtOffset(beforeLinkTextWidth, 0);
                 contents.showText(linkText);
+                appendToTagTree(pages.get(pageIndex), linkElem);
+
+
                 contents.setNonStrokingColor(text.getTextColor());
                 contents.newLineAtOffset(linkTextWidth, 0);
                 contents.showText(afterLinkText);
+                appendToTagTree(pages.get(pageIndex), currentElem);
                 contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
             } else {
                 contents.showText(line);
