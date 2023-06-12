@@ -37,6 +37,7 @@ import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
 import org.apache.xmpbox.xml.XmpSerializer;
 
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -80,10 +81,8 @@ public class CustomTaggedPdfBuilder {
     private final String URL_REGEX = "(http|www)[^\\s]*[a-zA-Z0-9]";
     private final String PHONE_NUMBER_REGEX = "(1\\-)?\\d{3}\\-\\d{3}\\-\\d{4}";
     private final String URL_OR_PHONE_NUMBER_REGEX = String.format("(%s|%s)", URL_REGEX, PHONE_NUMBER_REGEX);
-    private final Pattern urlPattern = Pattern.compile("(http|www)[^\\s]*[a-zA-Z0-9]");
+    private final Pattern URL_OR_PHONE_NUMBER_PATTERN = Pattern.compile(URL_OR_PHONE_NUMBER_REGEX);
 
-    // will match phone numbers such as 1-800-827-1000 or 800-827-1000
-    private final Pattern phoneNumberPattern = Pattern.compile("(1\\-)?\\d{3}\\-\\d{3}\\-\\d{4}");
 
     @SneakyThrows
     public CustomTaggedPdfBuilder(String title, PageMargins margins) {
@@ -277,6 +276,8 @@ public class CustomTaggedPdfBuilder {
 
         PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
+        PDFont pdFont = getPDFont(text.getFont());
+        float fontSize =  text.getFontSize();
 
         //Open up a stream to draw text at a given location.
         contents.beginText();
@@ -297,18 +298,31 @@ public class CustomTaggedPdfBuilder {
 
             String line = wrappedLines.get(i);
 
-            Matcher matcher = urlPattern.matcher(line);
-
+            Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
             if(matcher.find()) {
                 //get the MatchResult Object
-                MatchResult result = matcher.toMatchResult();
+                MatchResult regexMatch = matcher.toMatchResult();
 
-                //Prints the offset after the last character matched.
-//                System.out.println("First Capturing Group - Match String end(): "+result.end());
+                String beforeLinkText = line.substring(0, regexMatch.start());
+                float beforeLinkTextWidth = pdFont.getStringWidth(beforeLinkText) / 1000.0f * fontSize;
+                String linkText = matcher.group();
+                float linkTextWidth = pdFont.getStringWidth(linkText) / 1000.0f * fontSize;
+                String afterLinkText = line.substring(regexMatch.end());
+
+                contents.setNonStrokingColor(text.getTextColor());
+                contents.showText(beforeLinkText);
+                contents.setNonStrokingColor(Color.blue);
+                contents.newLineAtOffset(beforeLinkTextWidth, 0);
+                contents.showText(linkText);
+                contents.setNonStrokingColor(text.getTextColor());
+                contents.newLineAtOffset(linkTextWidth, 0);
+                contents.showText(afterLinkText);
+                contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
+            } else {
+                contents.showText(line);
+                contents.newLineAtOffset(0, newOffset);
             }
 
-            contents.showText(line);
-            contents.newLineAtOffset(0, newOffset);
         }
         contents.endText();
 
