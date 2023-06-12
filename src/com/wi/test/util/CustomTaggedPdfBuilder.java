@@ -41,12 +41,19 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 import lombok.SneakyThrows;
 public class CustomTaggedPdfBuilder {
+
+    // create accessible letter PDFs
+    // note: about link tags: https://accessible-digital-documents.com/blog/accessible-pdf-links/
+    // note: tags accepted for PDF/UA-1: https://www.pubcom.com/blog/2020_05-02_tags/pdf-ua-tags.shtml
 
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
@@ -67,6 +74,16 @@ public class CustomTaggedPdfBuilder {
     private final PDResources resources;
     private final COSArray cosArrayForAdditionalPages;
     private final COSArray boxArray;
+
+    // will match urls such as "www.healthcare.gov" or "https://www.va.gov/health-care/about-affordable-care-act"
+
+    private final String URL_REGEX = "(http|www)[^\\s]*[a-zA-Z0-9]";
+    private final String PHONE_NUMBER_REGEX = "(1\\-)?\\d{3}\\-\\d{3}\\-\\d{4}";
+    private final String URL_OR_PHONE_NUMBER_REGEX = String.format("(%s|%s)", URL_REGEX, PHONE_NUMBER_REGEX);
+    private final Pattern urlPattern = Pattern.compile("(http|www)[^\\s]*[a-zA-Z0-9]");
+
+    // will match phone numbers such as 1-800-827-1000 or 800-827-1000
+    private final Pattern phoneNumberPattern = Pattern.compile("(1\\-)?\\d{3}\\-\\d{3}\\-\\d{4}");
 
     @SneakyThrows
     public CustomTaggedPdfBuilder(String title, PageMargins margins) {
@@ -279,6 +296,17 @@ public class CustomTaggedPdfBuilder {
             }
 
             String line = wrappedLines.get(i);
+
+            Matcher matcher = urlPattern.matcher(line);
+
+            if(matcher.find()) {
+                //get the MatchResult Object
+                MatchResult result = matcher.toMatchResult();
+
+                //Prints the offset after the last character matched.
+//                System.out.println("First Capturing Group - Match String end(): "+result.end());
+            }
+
             contents.showText(line);
             contents.newLineAtOffset(0, newOffset);
         }

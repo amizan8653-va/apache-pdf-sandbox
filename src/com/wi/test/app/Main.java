@@ -26,6 +26,16 @@ public class Main {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:SSS");
         System.out.println(dateFormat.format(new Date()));
 
+        List<String> urls = List.of(
+            "https://www.va.gov",
+            "https://www.va.gov/contact-us",
+            "http://www.va.gov/statedva.htm",
+            "www.healthcare.gov",
+            "https://www.va.gov/health-care/about-affordable-care-act"
+        );
+
+        String phoneNumber = "1-800-827-1000";
+
         CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,0,20,20));
         PDStructureElement sec1 = formBuilder.addRoot(0);
 
@@ -34,7 +44,6 @@ public class Main {
             0, 0, sec1, StandardStructureTypes.H1, 0);
 
         UpdatedPagePosition newPosition = drawTableOne(formBuilder, sec1);
-        System.out.println(newPosition);
 
 
         //Hard coded table2
@@ -76,7 +85,6 @@ public class Main {
                 Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
             new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
         newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 50.0f, newPosition.getPageIndex(), sec1, 5);
-        System.out.println(newPosition);
 
 
         newPosition = formBuilder.drawTextElement(
@@ -87,7 +95,6 @@ public class Main {
                 Color.BLACK,
                 Font.HELVETICA),
             0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
-        System.out.println(newPosition);
 
         List<Text> bulletedList = Stream.of(
             "test item 1",
@@ -105,7 +112,18 @@ public class Main {
         newPosition = formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
 
         // test no extra x padding, and also test page overflow at start of new bullet point.
-        formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 600.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 600.0f, newPosition.getPageIndex(), sec1);
+
+        newPosition = formBuilder.drawTextElement(
+            new Text(12,
+                IntStream.range(0,5)
+                    .mapToObj(integer -> String.format("This is a very long string %d. Here is a url that will be " +
+                        "injected into it: %s.\nHere is a phone number too on a new line: %s. ",
+                        integer, urls.get(integer % urls.size()), phoneNumber))
+                    .collect(Collectors.joining()),
+                Color.BLACK,
+                Font.HELVETICA),
+            0, newPosition.getY() + 20, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
 
         formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
