@@ -313,17 +313,31 @@ public class CustomTaggedPdfBuilder {
                 contents.showText(beforeLinkText);
                 appendToTagTree(pages.get(pageIndex), currentElem);
 
+                contents.endMarkedContent();
+                setNextMarkedContentDictionary();
+                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
                 var linkElem = appendToTagTree(StandardStructureTypes.LINK, pages.get(pageIndex), currentElem);
                 contents.setNonStrokingColor(Color.blue);
                 contents.newLineAtOffset(beforeLinkTextWidth, 0);
                 contents.showText(linkText);
                 appendToTagTree(pages.get(pageIndex), linkElem);
 
+                contents.endMarkedContent();
+                setNextMarkedContentDictionary();
+                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
 
                 contents.setNonStrokingColor(text.getTextColor());
                 contents.newLineAtOffset(linkTextWidth, 0);
                 contents.showText(afterLinkText);
                 appendToTagTree(pages.get(pageIndex), currentElem);
+
+                contents.endMarkedContent();
+                setNextMarkedContentDictionary();
+                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
+
                 contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
             } else {
                 contents.showText(line);
