@@ -146,12 +146,12 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private NewPageRelatedVariables handlePageOverflow(PDPageContentStream oldContentStream, int pageIndex, PDStructureElement listItemParent, Text text, float x){
+    private NewPageRelatedVariables handlePageOverflow(PDPageContentStream oldContentStream, int pageIndex, PDStructureElement parentElement, Text text, float x){
         oldContentStream.endText();
 
         //End the marked content and append it's P structure element to the containing P structure element.
         oldContentStream.endMarkedContent();
-        appendToTagTree(pages.get(pageIndex), listItemParent);
+        appendToTagTree(pages.get(pageIndex), parentElement);
         oldContentStream.close();
 
 
@@ -309,34 +309,41 @@ public class CustomTaggedPdfBuilder {
                 float linkTextWidth = pdFont.getStringWidth(linkText) / 1000.0f * fontSize;
                 String afterLinkText = line.substring(regexMatch.end());
 
+                // prefix before the link
                 contents.setNonStrokingColor(text.getTextColor());
                 contents.showText(beforeLinkText);
                 appendToTagTree(pages.get(pageIndex), currentElem);
 
+                // segment tags
                 contents.endMarkedContent();
                 setNextMarkedContentDictionary();
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
+                // actual link
                 var linkElem = appendToTagTree(StandardStructureTypes.LINK, pages.get(pageIndex), currentElem);
                 contents.setNonStrokingColor(Color.blue);
                 contents.newLineAtOffset(beforeLinkTextWidth, 0);
                 contents.showText(linkText);
                 appendToTagTree(pages.get(pageIndex), linkElem);
 
+                // link sub tag
+                appendToTagTree("Link - OBJR",  pages.get(pageIndex), linkElem);
+
+                // segment tags
                 contents.endMarkedContent();
                 setNextMarkedContentDictionary();
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
-
+                // postfix after the link
                 contents.setNonStrokingColor(text.getTextColor());
                 contents.newLineAtOffset(linkTextWidth, 0);
                 contents.showText(afterLinkText);
                 appendToTagTree(pages.get(pageIndex), currentElem);
 
+                // segment text
                 contents.endMarkedContent();
                 setNextMarkedContentDictionary();
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
 
                 contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
             } else {
