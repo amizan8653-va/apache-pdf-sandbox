@@ -9,11 +9,7 @@ import com.wi.test.pojo.PageMargins;
 import com.wi.test.pojo.Row;
 import com.wi.test.pojo.Text;
 import com.wi.test.pojo.UpdatedPagePosition;
-import org.apache.pdfbox.cos.COSArray;
-import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSFloat;
-import org.apache.pdfbox.cos.COSInteger;
-import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -32,6 +28,12 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
+import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
@@ -327,7 +329,14 @@ public class CustomTaggedPdfBuilder {
                 appendToTagTree(pages.get(pageIndex), linkElem);
 
                 // link sub tag
-                appendToTagTree("Link - OBJR",  pages.get(pageIndex), linkElem);
+                appendToLinkAnnotationToLinkTag(
+                        pages.get(pageIndex),
+                        linkText,
+                        x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
+                        invertedYAxisOffset,
+                        linkTextWidth,
+                        text.getFontSize());
+
 
                 // segment tags
                 contents.endMarkedContent();
@@ -362,6 +371,27 @@ public class CustomTaggedPdfBuilder {
 
         return new UpdatedPagePosition(PAGE_HEIGHT - invertedYAxisOffset, pageIndex);
 
+    }
+
+    @SneakyThrows
+    private void appendToLinkAnnotationToLinkTag(PDPage page, String hyperLink, float x, float y, float width, float height) {
+        PDAnnotationLink txtLink = new PDAnnotationLink();
+        float [] blue =  {0.0f, 0.0f, 1.0f};
+        txtLink.setColor(new PDColor(blue, PDDeviceRGB.INSTANCE));
+
+        // set action to open url on click
+        PDActionURI action = new PDActionURI();
+        action.setURI(hyperLink);
+        txtLink.setAction(action);
+
+        // set position of annotation on page.
+        PDRectangle position = new PDRectangle();
+        position.setLowerLeftX(x);
+        position.setLowerLeftY(y - height);
+        position.setUpperRightX(x + width);
+        position.setUpperRightY(y);
+        txtLink.setRectangle(position);
+        page.getAnnotations().add(txtLink);
     }
 
     @SneakyThrows

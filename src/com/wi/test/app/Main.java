@@ -89,12 +89,12 @@ public class Main {
 
         newPosition = formBuilder.drawTextElement(
             new Text(12,
-                IntStream.range(0,400)
+                IntStream.range(0,30)
                     .mapToObj(integer -> String.format("This is a very long string %d. ", integer))
                     .collect(Collectors.joining()),
                 Color.BLACK,
                 Font.HELVETICA),
-            0, newPosition.getY(), sec1, StandardStructureTypes.P, newPosition.getPageIndex());
+            0, newPosition.getY() + 450, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
 
         List<Text> bulletedList = Stream.of(
             "test item 1",
@@ -112,7 +112,7 @@ public class Main {
         newPosition = formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
 
         // test no extra x padding, and also test page overflow at start of new bullet point.
-        newPosition = formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 600.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 460.0f, newPosition.getPageIndex(), sec1);
 
         newPosition = formBuilder.drawTextElement(
             new Text(12,
