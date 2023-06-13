@@ -387,9 +387,9 @@ public class CustomTaggedPdfBuilder {
         // set position of annotation on page.
         PDRectangle position = new PDRectangle();
         position.setLowerLeftX(x);
-        position.setLowerLeftY(y - height);
+        position.setLowerLeftY(y + height);
         position.setUpperRightX(x + width);
-        position.setUpperRightY(y);
+        position.setUpperRightY(y + height + height);
         txtLink.setRectangle(position);
         page.getAnnotations().add(txtLink);
     }
