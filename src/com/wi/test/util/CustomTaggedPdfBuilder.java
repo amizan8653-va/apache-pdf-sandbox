@@ -19,6 +19,7 @@ import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
@@ -34,6 +35,7 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
@@ -84,6 +86,8 @@ public class CustomTaggedPdfBuilder {
     private final String PHONE_NUMBER_REGEX = "(1\\-)?\\d{3}\\-\\d{3}\\-\\d{4}";
     private final String URL_OR_PHONE_NUMBER_REGEX = String.format("(%s|%s)", URL_REGEX, PHONE_NUMBER_REGEX);
     private final Pattern URL_OR_PHONE_NUMBER_PATTERN = Pattern.compile(URL_OR_PHONE_NUMBER_REGEX);
+
+    private final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(URL_OR_PHONE_NUMBER_REGEX);
 
 
     @SneakyThrows
@@ -332,6 +336,7 @@ public class CustomTaggedPdfBuilder {
                 appendToLinkAnnotationToLinkTag(
                         pages.get(pageIndex),
                         linkText,
+                        linkElem,
                         x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
                         invertedYAxisOffset,
                         linkTextWidth,
@@ -374,15 +379,24 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private void appendToLinkAnnotationToLinkTag(PDPage page, String hyperLink, float x, float y, float width, float height) {
-        PDAnnotationLink txtLink = new PDAnnotationLink();
+    private void appendToLinkAnnotationToLinkTag(PDPage page, String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
+        // the question & this answer https://stackoverflow.com/a/21163795/4832515 were the basis for this code
+        PDAnnotationLink linkAnnotation = new PDAnnotationLink();
+        PDBorderStyleDictionary borderULine = new PDBorderStyleDictionary();
+        borderULine.setStyle(PDBorderStyleDictionary.STYLE_UNDERLINE);
+        linkAnnotation.setBorderStyle(borderULine);
         float [] blue =  {0.0f, 0.0f, 1.0f};
-        txtLink.setColor(new PDColor(blue, PDDeviceRGB.INSTANCE));
+        linkAnnotation.setColor(new PDColor(blue, PDDeviceRGB.INSTANCE));
 
-        // set action to open url on click
-        PDActionURI action = new PDActionURI();
-        action.setURI(hyperLink);
-        txtLink.setAction(action);
+        Matcher matcher = PHONE_NUMBER_PATTERN.matcher(hyperLinkOrPhoneNumber);
+        var action = new PDActionURI();
+        if(matcher.find()) {
+            // set action to open phone number on click
+            action.setSubType("PHONE_NUMBER");
+
+        }
+        action.setURI(hyperLinkOrPhoneNumber);
+        linkAnnotation.setAction(action);
 
         // set position of annotation on page.
         PDRectangle position = new PDRectangle();
@@ -390,8 +404,13 @@ public class CustomTaggedPdfBuilder {
         position.setLowerLeftY(y + height);
         position.setUpperRightX(x + width);
         position.setUpperRightY(y + height + height);
-        txtLink.setRectangle(position);
-        page.getAnnotations().add(txtLink);
+        linkAnnotation.setRectangle(position);
+        page.getAnnotations().add(linkAnnotation);
+
+        PDObjectReference objectReference = new PDObjectReference();
+        objectReference.setReferencedObject(linkAnnotation);
+
+        linkElem.appendKid(objectReference);
     }
 
     @SneakyThrows
