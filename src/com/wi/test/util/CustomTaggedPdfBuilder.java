@@ -588,9 +588,9 @@ public class CustomTaggedPdfBuilder {
         String structureType = cell.isHeader() ? StandardStructureTypes.TH : StandardStructureTypes.TD;
         if(cell.isHeader()){
             if(tableHeaderType == TableHeaderType.ROW){
-                cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_ROW);
-            } else {
                 cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_COLUMN);
+            } else {
+                cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_ROW);
             }
             cellAttr.setInt(COSName.getPDFName("ColSpan"), 1);
             cellAttr.setInt(COSName.getPDFName("RowSpan"), 1);
