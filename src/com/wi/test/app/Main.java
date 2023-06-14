@@ -109,10 +109,10 @@ public class Main {
             .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
             .collect(Collectors.toList());
         // test extra x padding, and also test page overflow halfway through bullet point.
-        newPosition = formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 25.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 665.0f, newPosition.getPageIndex(), sec1);
 
         // test no extra x padding, and also test page overflow at start of new bullet point.
-        newPosition = formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 460.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 600.0f, newPosition.getPageIndex(), sec1);
 
         newPosition = formBuilder.drawTextElement(
             new Text(12,
