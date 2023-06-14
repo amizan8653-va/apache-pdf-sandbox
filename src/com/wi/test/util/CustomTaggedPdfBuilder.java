@@ -87,7 +87,7 @@ public class CustomTaggedPdfBuilder {
     private final String URL_OR_PHONE_NUMBER_REGEX = String.format("(%s|%s)", URL_REGEX, PHONE_NUMBER_REGEX);
     private final Pattern URL_OR_PHONE_NUMBER_PATTERN = Pattern.compile(URL_OR_PHONE_NUMBER_REGEX);
 
-    private final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(URL_OR_PHONE_NUMBER_REGEX);
+    private final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(PHONE_NUMBER_REGEX);
 
 
     @SneakyThrows
