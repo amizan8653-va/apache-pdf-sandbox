@@ -2,6 +2,7 @@ package com.wi.test.util;
 
 import com.wi.test.constants.PDConstants;
 import com.wi.test.enums.Font;
+import com.wi.test.enums.TableHeaderType;
 import com.wi.test.pojo.Cell;
 import com.wi.test.pojo.DataTable;
 import com.wi.test.pojo.NewPageRelatedVariables;
@@ -24,6 +25,7 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
+import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDTableAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
@@ -518,7 +520,7 @@ public class CustomTaggedPdfBuilder {
                 Cell currentCell = table.getCell(i, j);
                 float cellX = x + currentRow.getCellPosition(j);
 
-                PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR);
+                PDStructureElement cellStructureElement = addTableCellParentTag(currentCell, pageIndex, currentTR, table.getTableHeaderType());
                 UpdatedPagePosition updatedPagePosition = drawCellContents(pageIndex, wrappedLinesPerCell.get(j), currentRow, cellStructureElement, currentCell, cellX, cellY, spaceBetweenLines);
                 aggregatedPositions.add(updatedPagePosition);
             }
@@ -580,10 +582,17 @@ public class CustomTaggedPdfBuilder {
 
 
 
-    private PDStructureElement addTableCellParentTag(Cell cell, int pageIndex, PDStructureElement currentRow) {
+    private PDStructureElement addTableCellParentTag(Cell cell, int pageIndex, PDStructureElement currentRow, TableHeaderType tableHeaderType) {
         COSDictionary cellAttr = new COSDictionary();
         cellAttr.setName(COSName.O, "Table");
         String structureType = cell.isHeader() ? StandardStructureTypes.TH : StandardStructureTypes.TD;
+        if(cell.isHeader()){
+            if(tableHeaderType == TableHeaderType.ROW){
+                cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_ROW);
+            } else {
+                cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_COLUMN);
+            }
+        }
         PDStructureElement cellElement = appendToTagTree(structureType, pages.get(pageIndex), currentRow);
         cellElement.getCOSObject().setItem(COSName.A, cellAttr);
         return cellElement;

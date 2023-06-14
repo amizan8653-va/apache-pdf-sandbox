@@ -1,5 +1,6 @@
 package com.wi.test.pojo;
 
+import com.wi.test.enums.TableHeaderType;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -10,9 +11,11 @@ public class DataTable {
 
     private final List<Row> rows = new ArrayList<>();
     private final String summary;
+    private final TableHeaderType tableHeaderType;
 
-    public DataTable(String summary) {
+    public DataTable(String summary, TableHeaderType tableHeaderType) {
         this.summary = summary;
+        this.tableHeaderType = tableHeaderType;
     }
 
     public void addRow(Row row) {
@@ -31,4 +34,7 @@ public class DataTable {
         return currentPosition;
     }
 
+    public TableHeaderType getTableHeaderType() {
+        return tableHeaderType;
+    }
 }

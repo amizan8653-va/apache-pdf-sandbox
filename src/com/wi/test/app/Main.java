@@ -2,6 +2,7 @@ package com.wi.test.app;
 
 import com.wi.test.constants.PDConstants;
 import com.wi.test.enums.Font;
+import com.wi.test.enums.TableHeaderType;
 import com.wi.test.pojo.PageMargins;
 import com.wi.test.pojo.Text;
 import com.wi.test.pojo.UpdatedPagePosition;
@@ -47,7 +48,7 @@ public class Main {
 
 
         //Hard coded table2
-        DataTable table2 = new DataTable("Table Summary 2");
+        DataTable table2 = new DataTable("Table Summary 2", TableHeaderType.ROW);
         table2.addRow(new Row(Arrays.asList(
                 new Cell("Column \nHeader \n1 (Header)", Font.HELVETICA, 10, 45, PDConstants.TOP_ALIGN, true),
                 new Cell("Column \nHeader \n2 (Description)", Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN,  true),
@@ -132,7 +133,7 @@ public class Main {
 
     private static UpdatedPagePosition drawTableOne(CustomTaggedPdfBuilder formBuilder, PDStructureElement sec1) {
         //Hard coded table1
-        DataTable table1 = new DataTable("Table Summary 1");
+        DataTable table1 = new DataTable("Table Summary 1", TableHeaderType.COLUMN);
         table1.addRow(new Row(Arrays.asList(
             new Cell("Row Header 1 (ID) BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH:", Font.HELVETICA, 10, 100, PDConstants.LEFT_ALIGN,  true),
             new Cell("56-8987 BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH", Font.HELVETICA, 10, 200, PDConstants.LEFT_ALIGN, false))));
