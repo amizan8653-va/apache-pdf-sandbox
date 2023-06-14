@@ -397,9 +397,8 @@ public class CustomTaggedPdfBuilder {
         Matcher matcher = PHONE_NUMBER_PATTERN.matcher(hyperLinkOrPhoneNumber);
         var action = new PDActionURI();
         if(matcher.find()) {
-            // set action to open phone number on click
-            action.setSubType("PHONE_NUMBER");
-
+            // this is a phone number, stick 'tel:' as a prefix to denote that.
+            hyperLinkOrPhoneNumber = "tel:" + hyperLinkOrPhoneNumber;
         }
         action.setURI(hyperLinkOrPhoneNumber);
         linkAnnotation.setAction(action);
