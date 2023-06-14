@@ -32,11 +32,9 @@ import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
@@ -587,14 +585,16 @@ public class CustomTaggedPdfBuilder {
         cellAttr.setName(COSName.O, "Table");
         String structureType = cell.isHeader() ? StandardStructureTypes.TH : StandardStructureTypes.TD;
         if(cell.isHeader()){
-            if(tableHeaderType == TableHeaderType.ROW){
+            if(tableHeaderType == TableHeaderType.ROW_HEADERS){
                 cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_COLUMN);
             } else {
+                // for some reason commonlook will complain about this.
+                // it isn't happy about table cells only having row headers & not any column headers.
                 cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_ROW);
             }
-            cellAttr.setInt(COSName.getPDFName("ColSpan"), 1);
-            cellAttr.setInt(COSName.getPDFName("RowSpan"), 1);
         }
+        cellAttr.setInt(COSName.getPDFName("ColSpan"), 1);
+        cellAttr.setInt(COSName.getPDFName("RowSpan"), 1);
         PDStructureElement cellElement = appendToTagTree(structureType, pages.get(pageIndex), currentRow);
         cellElement.getCOSObject().setItem(COSName.A, cellAttr);
         return cellElement;

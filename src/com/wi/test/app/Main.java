@@ -48,7 +48,7 @@ public class Main {
 
 
         //Hard coded table2
-        DataTable table2 = new DataTable("Table Summary 2", TableHeaderType.ROW);
+        DataTable table2 = new DataTable("Table Summary 2", TableHeaderType.ROW_HEADERS);
         table2.addRow(new Row(Arrays.asList(
                 new Cell("Column \nHeader \n1 (Header)", Font.HELVETICA, 10, 45, PDConstants.TOP_ALIGN, true),
                 new Cell("Column \nHeader \n2 (Description)", Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN,  true),
@@ -133,7 +133,7 @@ public class Main {
 
     private static UpdatedPagePosition drawTableOne(CustomTaggedPdfBuilder formBuilder, PDStructureElement sec1) {
         //Hard coded table1
-        DataTable table1 = new DataTable("Table Summary 1", TableHeaderType.COLUMN);
+        DataTable table1 = new DataTable("Table Summary 1", TableHeaderType.COLUMN_HEADERS);
         table1.addRow(new Row(Arrays.asList(
             new Cell("Row Header 1 (ID) BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH:", Font.HELVETICA, 10, 100, PDConstants.LEFT_ALIGN,  true),
             new Cell("56-8987 BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH", Font.HELVETICA, 10, 200, PDConstants.LEFT_ALIGN, false))));
