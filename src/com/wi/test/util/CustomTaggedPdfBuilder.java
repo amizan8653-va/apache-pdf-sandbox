@@ -592,6 +592,8 @@ public class CustomTaggedPdfBuilder {
             } else {
                 cellAttr.setName(COSName.getPDFName("Scope"), PDTableAttributeObject.SCOPE_COLUMN);
             }
+            cellAttr.setInt(COSName.getPDFName("ColSpan"), 1);
+            cellAttr.setInt(COSName.getPDFName("RowSpan"), 1);
         }
         PDStructureElement cellElement = appendToTagTree(structureType, pages.get(pageIndex), currentRow);
         cellElement.getCOSObject().setItem(COSName.A, cellAttr);
