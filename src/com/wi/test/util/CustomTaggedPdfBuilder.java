@@ -209,17 +209,23 @@ public class CustomTaggedPdfBuilder {
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
         PDStructureElement listTextTagElement = null;
-        for (int i = 0; i < wrappedLines.size(); i++) {
-            float newOffset = -text.getFontSize() - spaceBetweenListItems;
-            invertedYAxisOffset += newOffset;
-            if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
-                float continuationX = i == 0 ? x : x + prefixWidth;
-                var newPageVars = handlePageOverflow(contents, pageIndex, listItemParent, text, continuationX);
-                pageIndex = newPageVars.getNewPageIndex();
-                invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset() - text.getFontSize() - spaceBetweenListItems;
-                contents = newPageVars.getNewContent();
-            }
 
+        float lineOffset = -text.getFontSize() - spaceBetweenListItems;
+
+        // do not try to break a single list item across multiple pages: tagging gets screwed up
+        // instead, compute if all lines fit as a single unit.
+        // If so, add the unit to the current page. If not, add a new page before adding the unit.
+        // This assumes that a single bullet item on a list will *not* be longer than an entire page.
+        if( (invertedYAxisOffset + lineOffset * wrappedLines.size()) <= this.pageMargins.getBottomMargin()) {
+            var newPageVars = handlePageOverflow(contents, pageIndex, listItemParent, text, x);
+            pageIndex = newPageVars.getNewPageIndex();
+            invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
+            contents = newPageVars.getNewContent();
+        }
+
+
+        for (int i = 0; i < wrappedLines.size(); i++) {
+            invertedYAxisOffset += lineOffset;
             if(i == 0) {
                 var bulletTagElement = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
                 contents.showText(prefix);
@@ -243,7 +249,7 @@ public class CustomTaggedPdfBuilder {
                 contents.showText(line);
             }
 
-            contents.newLineAtOffset(0, newOffset);
+            contents.newLineAtOffset(0, lineOffset);
 
         }
         contents.endText();
