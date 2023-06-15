@@ -338,16 +338,6 @@ public class CustomTaggedPdfBuilder {
                 contents.showText(linkText);
                 appendToTagTree(pages.get(pageIndex), linkElem);
 
-                // link sub tag
-                appendToLinkAnnotationToLinkTag(
-                        pages.get(pageIndex),
-                        linkText,
-                        linkElem,
-                        x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
-                        invertedYAxisOffset,
-                        linkTextWidth,
-                        text.getFontSize());
-
 
                 // segment tags
                 contents.endMarkedContent();
@@ -364,6 +354,16 @@ public class CustomTaggedPdfBuilder {
                 contents.endMarkedContent();
                 setNextMarkedContentDictionary();
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+
+                // link annotation creation and tagging
+                appendToLinkAnnotationToLinkTag(
+                        pages.get(pageIndex),
+                        linkText,
+                        linkElem,
+                        x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
+                        invertedYAxisOffset,
+                        linkTextWidth,
+                        text.getFontSize());
 
                 contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
             } else {
@@ -718,8 +718,6 @@ public class CustomTaggedPdfBuilder {
         nums.add(numDictionaries);
         dict.setItem(COSName.NUMS, nums);
         PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
-        int currentStructParent = 1;
-        pdf.getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(currentStructParent);
         pdf.getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
     }
