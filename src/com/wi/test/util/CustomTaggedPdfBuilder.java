@@ -408,7 +408,9 @@ public class CustomTaggedPdfBuilder {
         position.setLowerLeftX(x);
         position.setLowerLeftY(y + height);
         position.setUpperRightX(x + width);
-        position.setUpperRightY(y + height + height);
+        // todo: make sure this 2.5x multiplier works with multiple font sizes. Maybe this only works with size you
+        //       are testing with.
+        position.setUpperRightY(y + 2.5f * height);
         linkAnnotation.setRectangle(position);
         page.getAnnotations().add(linkAnnotation);
 
