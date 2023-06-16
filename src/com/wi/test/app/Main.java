@@ -27,6 +27,7 @@ public class Main {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:SSS");
         System.out.println(dateFormat.format(new Date()));
 
+
         List<String> urls = List.of(
             "https://www.va.gov",
             "https://www.va.gov/contact-us",

@@ -33,6 +33,7 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
@@ -89,9 +90,30 @@ public class CustomTaggedPdfBuilder {
 
     private final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(PHONE_NUMBER_REGEX);
 
+    private static final String WATERMARK_PATH_FILENAME = "watermark.jpg";
+
+    private static final String CARD_WATERMARK_FILENAME = "card-watermark.jpg";
+
+    private static final String VA_LOGO_FILENAME = "va_seal.jpg";
+
+    private byte[] watermarkBytes;
+
+    /** The proof of service card water mark bytes. */
+    private byte[] cardWatermarkBytes;
+
+    private byte [] vaSealBytes;
+
+    public void loadExternalImageBytes() {
+        watermarkBytes = CustomTaggedPdfBuilder.readBinaryFile(WATERMARK_PATH_FILENAME);
+        cardWatermarkBytes = CustomTaggedPdfBuilder.readBinaryFile(CARD_WATERMARK_FILENAME);
+        vaSealBytes = CustomTaggedPdfBuilder.readBinaryFile(VA_LOGO_FILENAME);
+    }
+
 
     @SneakyThrows
     public CustomTaggedPdfBuilder(String title, PageMargins margins) {
+        loadExternalImageBytes();
+
         //Setup new document
         pdf = new PDDocument();
         pdf.setVersion(1.7f);
@@ -712,6 +734,11 @@ public class CustomTaggedPdfBuilder {
         page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(0));
         pages.add(page);
         pdf.addPage(pages.get(pages.size() - 1));
+        addImagesToPage();
+    }
+
+    private void addImagesToPage() {
+        drawStandardWatermark(pages.size() - 1);
     }
 
     //Adds the parent tree to root struct element to identify tagged content
@@ -722,5 +749,33 @@ public class CustomTaggedPdfBuilder {
         PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
         pdf.getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
+    }
+
+    @SneakyThrows
+    public static byte[] readBinaryFile(final String filePath) {
+        return CustomTaggedPdfBuilder.class
+                .getClassLoader()
+                .getResource(filePath)
+                .openStream()
+                .readAllBytes();
+    }
+
+    private void drawStandardWatermark(int pageIndex){
+        var marginTop = 4f / 11.7f * pdf.getPage(pageIndex).getMediaBox().getHeight();
+        var marginLeft = 1.75f / 8.25f * pdf.getPage(pageIndex).getMediaBox().getWidth();
+        var width = 360;
+        var height = 354;
+        drawImage(watermarkBytes, "Watermark", pageIndex, marginTop, marginLeft, width, height);
+    }
+
+    @SneakyThrows
+    private void drawImage(byte [] imageBytes, String imageName, int pageIndex, float marginTop, float marginLeft, int width, int height) {
+        PDImageXObject pdImageXObject =
+                PDImageXObject.createFromByteArray(pdf, imageBytes, imageName);
+        PDPage page = pdf.getPage(pageIndex);
+        PDPageContentStream cos =
+                new PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.PREPEND, true);
+        cos.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
+        cos.close();
     }
 }
