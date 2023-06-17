@@ -25,7 +25,6 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
-import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDTableAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -37,7 +36,6 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
@@ -86,7 +84,7 @@ public class CustomTaggedPdfBuilder {
     // will match urls such as "www.healthcare.gov" or "https://www.va.gov/health-care/about-affordable-care-act"
 
     private final String URL_REGEX = "(http|www)[^\\s]*[a-zA-Z0-9]";
-    private final String PHONE_NUMBER_REGEX = "(1\\-)?\\d{3}\\-\\d{3}\\-\\d{4}";
+    private final String PHONE_NUMBER_REGEX = "(1-)?\\d{3}-\\d{3}-\\d{4}";
     private final String URL_OR_PHONE_NUMBER_REGEX = String.format("(%s|%s)", URL_REGEX, PHONE_NUMBER_REGEX);
     private final Pattern URL_OR_PHONE_NUMBER_PATTERN = Pattern.compile(URL_OR_PHONE_NUMBER_REGEX);
 
@@ -382,7 +380,7 @@ public class CustomTaggedPdfBuilder {
                 // segment text
                 contents.endMarkedContent();
                 setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+                contents.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
 
                 // link annotation creation and tagging
                 appendToLinkAnnotationToLinkTag(
@@ -570,12 +568,11 @@ public class CustomTaggedPdfBuilder {
     }
 
     //Adds a SECT structure element as the structure tree root.
-    public PDStructureElement addRoot(int pageIndex) {
+    public void addRoot(int pageIndex) {
         rootElem = new PDStructureElement(StandardStructureTypes.SECT, null);
         rootElem.setTitle("PDF Document");
         rootElem.setPage(pages.get(pageIndex));
         rootElem.setLanguage("EN-US");
-        return rootElem;
     }
 
     //Save the pdf to disk and close the stream
@@ -597,15 +594,13 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private void appendArtifactToPage(PDStructureElement parent, PDPageContentStream contentStream, int pageIndex){
+    private void appendArtifactToPage(PDPageContentStream contentStream, int pageIndex){
         //numDict for parent tree
         COSDictionary numDict = new COSDictionary();
         numDict.setInt(COSName.K, currentMCID - 1);
         numDict.setString(COSName.LANG, "EN-US");
         numDict.setItem(COSName.PG, pdf.getPage(pageIndex).getCOSObject());
 
-        parent.appendKid(new PDArtifactMarkedContent(currentMarkedContentDictionary));
-        numDict.setItem(COSName.P, parent.getCOSObject());
         numDict.setName(COSName.S, COSName.ARTIFACT.getName());
         numDictionaries.add(numDict);
 
@@ -764,7 +759,7 @@ public class CustomTaggedPdfBuilder {
 
     private void addImagesToPage() {
         PDPageContentStream contentStream = drawStandardWatermark(pages.size() - 1);
-        appendArtifactToPage(rootElem, contentStream, pages.size() - 1);
+        appendArtifactToPage(contentStream, pages.size() - 1);
     }
 
     //Adds the parent tree to root struct element to identify tagged content
