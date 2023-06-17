@@ -25,6 +25,7 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
+import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDTableAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -36,6 +37,7 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
@@ -140,6 +142,10 @@ public class CustomTaggedPdfBuilder {
         prePageOne();
         addPage();
 
+        addRoot(0);
+
+        addImagesToPage();
+
     }
 
     @SneakyThrows
@@ -184,6 +190,7 @@ public class CustomTaggedPdfBuilder {
 
 
         addPage();
+        addImagesToPage();
 
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
@@ -531,6 +538,7 @@ public class CustomTaggedPdfBuilder {
                 pageIndex += 1;
                 y = pageMargins.getTopMargin();
                 rowIndexStart = i;
+                addImagesToPage();
             }
 
             Row currentRow = table.getRows().get(i);
@@ -586,6 +594,24 @@ public class CustomTaggedPdfBuilder {
         structureElement.setPage(currentPage);
         parent.appendKid(structureElement);
         return structureElement;
+    }
+
+    @SneakyThrows
+    private void appendArtifactToPage(PDStructureElement parent, PDPageContentStream contentStream, int pageIndex){
+        //numDict for parent tree
+        COSDictionary numDict = new COSDictionary();
+        numDict.setInt(COSName.K, currentMCID - 1);
+        numDict.setString(COSName.LANG, "EN-US");
+        numDict.setItem(COSName.PG, pdf.getPage(pageIndex).getCOSObject());
+
+        parent.appendKid(new PDArtifactMarkedContent(currentMarkedContentDictionary));
+        numDict.setItem(COSName.P, parent.getCOSObject());
+        numDict.setName(COSName.S, COSName.ARTIFACT.getName());
+        numDictionaries.add(numDict);
+
+        contentStream.endMarkedContent();
+        contentStream.close();
+
     }
 
     private void appendToTagTree(PDPage currentPage, PDStructureElement parent){
@@ -734,11 +760,11 @@ public class CustomTaggedPdfBuilder {
         page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(0));
         pages.add(page);
         pdf.addPage(pages.get(pages.size() - 1));
-        addImagesToPage();
     }
 
     private void addImagesToPage() {
-        drawStandardWatermark(pages.size() - 1);
+        PDPageContentStream contentStream = drawStandardWatermark(pages.size() - 1);
+        appendArtifactToPage(rootElem, contentStream, pages.size() - 1);
     }
 
     //Adds the parent tree to root struct element to identify tagged content
@@ -760,22 +786,28 @@ public class CustomTaggedPdfBuilder {
                 .readAllBytes();
     }
 
-    private void drawStandardWatermark(int pageIndex){
+    private PDPageContentStream drawStandardWatermark(int pageIndex){
         var marginTop = 4f / 11.7f * pdf.getPage(pageIndex).getMediaBox().getHeight();
         var marginLeft = 1.75f / 8.25f * pdf.getPage(pageIndex).getMediaBox().getWidth();
         var width = 360;
         var height = 354;
-        drawImage(watermarkBytes, "Watermark", pageIndex, marginTop, marginLeft, width, height);
+        return drawImage(watermarkBytes, "Watermark", pageIndex, marginTop, marginLeft, width, height);
     }
 
     @SneakyThrows
-    private void drawImage(byte [] imageBytes, String imageName, int pageIndex, float marginTop, float marginLeft, int width, int height) {
+    private PDPageContentStream drawImage(byte [] imageBytes, String imageName, int pageIndex, float marginTop, float marginLeft, int width, int height) {
         PDImageXObject pdImageXObject =
                 PDImageXObject.createFromByteArray(pdf, imageBytes, imageName);
         PDPage page = pdf.getPage(pageIndex);
         PDPageContentStream cos =
-                new PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.PREPEND, true);
+                new PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true);
+        setNextMarkedContentDictionary();
+        cos.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
         cos.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
-        cos.close();
+        return cos;
+    }
+
+    public PDStructureElement getRoot() {
+        return rootElem;
     }
 }

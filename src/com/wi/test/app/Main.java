@@ -39,7 +39,7 @@ public class Main {
         String phoneNumber = "1-800-827-1000";
 
         CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,0,20,20));
-        PDStructureElement sec1 = formBuilder.addRoot(0);
+        PDStructureElement sec1 = formBuilder.getRoot();
 
         formBuilder.drawTextElement(
             new Text(14, "PDF HEADER 1",Color.BLUE.darker().darker(), Font.HELVETICA_BOLD),
