@@ -797,7 +797,7 @@ public class CustomTaggedPdfBuilder {
         PDPageContentStream cos =
                 new PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true);
         setNextMarkedContentDictionary();
-        cos.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+        cos.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
         cos.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
         return cos;
     }
