@@ -35,6 +35,7 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
@@ -55,6 +56,9 @@ import java.util.stream.Stream;
 
 
 import lombok.SneakyThrows;
+
+import static org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink.HIGHLIGHT_MODE_NONE;
+
 public class CustomTaggedPdfBuilder {
 
     // create accessible letter PDFs
@@ -363,6 +367,16 @@ public class CustomTaggedPdfBuilder {
                 contents.setNonStrokingColor(Color.blue);
                 contents.newLineAtOffset(beforeLinkTextWidth, 0);
                 contents.showText(linkText);
+                // link annotation creation and tagging
+                appendToLinkAnnotationToLinkTag(
+                        pageIndex,
+                        linkText,
+                        linkElem,
+                        x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
+                        invertedYAxisOffset,
+                        linkTextWidth,
+                        text.getFontSize());
+
                 appendToTagTree(pages.get(pageIndex), linkElem);
 
 
@@ -380,17 +394,7 @@ public class CustomTaggedPdfBuilder {
                 // segment text
                 contents.endMarkedContent();
                 setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
-
-                // link annotation creation and tagging
-                appendToLinkAnnotationToLinkTag(
-                        pages.get(pageIndex),
-                        linkText,
-                        linkElem,
-                        x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
-                        invertedYAxisOffset,
-                        linkTextWidth,
-                        text.getFontSize());
+                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
                 contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
             } else {
@@ -412,9 +416,10 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private void appendToLinkAnnotationToLinkTag(PDPage page, String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
+    private void appendToLinkAnnotationToLinkTag(int pageIndex, String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
         // the question & this answer https://stackoverflow.com/a/21163795/4832515 were the basis for this code
         PDAnnotationLink linkAnnotation = new PDAnnotationLink();
+        linkAnnotation.setHighlightMode(HIGHLIGHT_MODE_NONE);
         PDBorderStyleDictionary borderULine = new PDBorderStyleDictionary();
         borderULine.setStyle(PDBorderStyleDictionary.STYLE_UNDERLINE);
         linkAnnotation.setBorderStyle(borderULine);
@@ -439,11 +444,15 @@ public class CustomTaggedPdfBuilder {
         //       are testing with.
         position.setUpperRightY(y + 2.5f * height);
         linkAnnotation.setRectangle(position);
-        page.getAnnotations().add(linkAnnotation);
+
+        // this line is evil... it will add a link to your page but it will be an unmarked annotation failing commonlook
+        // rather than using this to add a link to your page, you should go and create an object reference that
+        // wraps around your annotation and add that object reference to the <LINK> element.
+        // pdf.getPage(pageIndex).getAnnotations().add(linkAnnotation);
 
         PDObjectReference objectReference = new PDObjectReference();
         objectReference.setReferencedObject(linkAnnotation);
-
+        linkAnnotation.setContents(hyperLinkOrPhoneNumber);
         linkElem.appendKid(objectReference);
     }
 
@@ -622,7 +631,6 @@ public class CustomTaggedPdfBuilder {
         numDict.setName(COSName.S, COSName.P.getName());
         numDictionaries.add(numDict);
     }
-
 
 
     private PDStructureElement addTableCellParentTag(Cell cell, int pageIndex, PDStructureElement currentRow, TableHeaderType tableHeaderType) {
