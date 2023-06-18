@@ -272,13 +272,11 @@ public class CustomTaggedPdfBuilder {
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
                 listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
-                String line = wrappedLines.get(i);
-                contents.showText(line);
-            } else {
-                String line = wrappedLines.get(i);
-                contents.showText(line);
+
             }
 
+            String line = wrappedLines.get(i);
+            contents.showText(line);
             contents.newLineAtOffset(0, lineOffset);
 
         }

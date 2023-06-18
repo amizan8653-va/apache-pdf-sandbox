@@ -127,6 +127,24 @@ public class Main {
                 Font.HELVETICA),
             0, newPosition.getY() + 20, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
 
+
+        List<Text> bulletedListWithLinks = Stream.of(
+                        "test item 1",
+                        "test item 2",
+                        "test item 3. " + String.format("This is a very long string %d. Here is a url that will be " +
+                                        "injected into it: %s.\nHere is a phone number too on a new line: %s.",
+                                3, urls.get(3), phoneNumber),
+                        "test item 4",
+                        "test item 5. " + String.format("This is a very long string %d. Here is a url that will be " +
+                                        "injected into it: %s.\nHere is a phone number too on a new line: %s.",
+                                5, urls.get(0), phoneNumber),
+                        "test item 6",
+                        "test item 7")
+                .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
+                .collect(Collectors.toList());
+
+        newPosition = formBuilder.drawBulletList(bulletedListWithLinks, 0, newPosition.getY() + 500.0f, newPosition.getPageIndex(), sec1);
+
         formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
         System.out.println(dateFormat.format(new Date()));
