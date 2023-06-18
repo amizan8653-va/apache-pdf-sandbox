@@ -249,6 +249,7 @@ public class CustomTaggedPdfBuilder {
             contents = newPageVars.getNewContent();
         }
 
+        final float prefixWidth = getStringWidth(text, prefix);
 
         for (int i = 0; i < wrappedLines.size(); i++) {
             invertedYAxisOffset += lineOffset;
@@ -256,7 +257,6 @@ public class CustomTaggedPdfBuilder {
                 var bulletTagElement = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
                 contents.showText(prefix);
 
-                final float prefixWidth = getStringWidth(text, prefix);
                 contents.newLineAtOffset(prefixWidth, 0);
 
                 appendToTagTree(pages.get(pageIndex), bulletTagElement);
@@ -273,7 +273,7 @@ public class CustomTaggedPdfBuilder {
             String line = wrappedLines.get(i);
             PDStructureElement currentElem = listTextTagElement;
 
-            drawLineThatMightHaveLink(text, contents, pageIndex, line, currentElem, x, invertedYAxisOffset, lineOffset);
+            drawLineThatMightHaveLink(text, contents, pageIndex, line, currentElem, x + prefixWidth, invertedYAxisOffset, lineOffset);
 
         }
         contents.endText();
@@ -349,7 +349,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private void appendToLinkAnnotationToLinkTag(String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
+    private void appendToLinkAnnotationToLinkTag(int pageIndex, String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
         // the question & this answer https://stackoverflow.com/a/21163795/4832515 were the basis for this code
         PDAnnotationLink linkAnnotation = new PDAnnotationLink();
         linkAnnotation.setHighlightMode(HIGHLIGHT_MODE_NONE);
@@ -378,10 +378,12 @@ public class CustomTaggedPdfBuilder {
         position.setUpperRightY(y + 2.5f * height);
         linkAnnotation.setRectangle(position);
 
-        // this line is evil... it will add a link to your page but it will be an unmarked annotation failing commonlook
-        // rather than using this to add a link to your page, you should go and create an object reference that
-        // wraps around your annotation and add that object reference to the <LINK> element.
-        // pdf.getPage(pageIndex).getAnnotations().add(linkAnnotation);
+        // todo: go and  figure out how to tag this annotation.
+        // This line will add a link to your page, but it will be an untagged annotation failing commonlook.
+        // Wrapping this annotation in an object reference that wraps around the annotation, and then adding it as a
+        //     child node to the <LINK> tag doesn't seem to tag it.
+        // If you simply skip this line, then the link annotation will not be painted onto the PDF at all.
+        pdf.getPage(pageIndex).getAnnotations().add(linkAnnotation);
 
         PDObjectReference objectReference = new PDObjectReference();
         objectReference.setReferencedObject(linkAnnotation);
@@ -420,6 +422,7 @@ public class CustomTaggedPdfBuilder {
 
             // link annotation creation and tagging
             appendToLinkAnnotationToLinkTag(
+                    pageIndex,
                     linkText,
                     linkElem,
                     x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
