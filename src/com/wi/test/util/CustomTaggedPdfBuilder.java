@@ -35,7 +35,6 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
@@ -328,6 +327,7 @@ public class CustomTaggedPdfBuilder {
         float invertedYAxisOffset = PAGE_HEIGHT - y;
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
+        boolean lastLineIsLink = false;
         for (int i = 0; i < wrappedLines.size(); i++) {
             float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
@@ -367,9 +367,9 @@ public class CustomTaggedPdfBuilder {
                 contents.setNonStrokingColor(Color.blue);
                 contents.newLineAtOffset(beforeLinkTextWidth, 0);
                 contents.showText(linkText);
+
                 // link annotation creation and tagging
                 appendToLinkAnnotationToLinkTag(
-                        pageIndex,
                         linkText,
                         linkElem,
                         x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
@@ -377,10 +377,9 @@ public class CustomTaggedPdfBuilder {
                         linkTextWidth,
                         text.getFontSize());
 
-                appendToTagTree(pages.get(pageIndex), linkElem);
-
 
                 // segment tags
+                appendToTagTree(pages.get(pageIndex), linkElem);
                 contents.endMarkedContent();
                 setNextMarkedContentDictionary();
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
@@ -397,9 +396,11 @@ public class CustomTaggedPdfBuilder {
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
                 contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
+                lastLineIsLink = true;
             } else {
                 contents.showText(line);
                 contents.newLineAtOffset(0, newOffset);
+                lastLineIsLink = false;
             }
 
         }
@@ -407,8 +408,11 @@ public class CustomTaggedPdfBuilder {
 
 
         //End the marked content and append it's P structure element to the containing P structure element.
-        contents.endMarkedContent();
-        appendToTagTree(pages.get(pageIndex), currentElem);
+        if(!lastLineIsLink) {
+            contents.endMarkedContent();
+            appendToTagTree(pages.get(pageIndex), currentElem);
+        }
+
         contents.close();
 
         return new UpdatedPagePosition(PAGE_HEIGHT - invertedYAxisOffset, pageIndex);
@@ -416,7 +420,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private void appendToLinkAnnotationToLinkTag(int pageIndex, String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
+    private void appendToLinkAnnotationToLinkTag(String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
         // the question & this answer https://stackoverflow.com/a/21163795/4832515 were the basis for this code
         PDAnnotationLink linkAnnotation = new PDAnnotationLink();
         linkAnnotation.setHighlightMode(HIGHLIGHT_MODE_NONE);

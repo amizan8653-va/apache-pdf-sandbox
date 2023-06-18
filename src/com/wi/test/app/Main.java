@@ -120,7 +120,7 @@ public class Main {
             new Text(12,
                     IntStream.range(0,1)
                             .mapToObj(integer -> String.format("This is a very long string %d. Here is a url that will be " +
-                                            "injected into it: %s.\nHere is a phone number too on a new line: %s. ",
+                                            "injected into it: %s.\nHere is a phone number too on a new line: %s.",
                                     integer, urls.get(integer % urls.size()), phoneNumber))
                             .collect(Collectors.joining()),
                 Color.BLACK,
