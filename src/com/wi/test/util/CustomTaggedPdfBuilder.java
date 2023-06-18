@@ -145,7 +145,8 @@ public class CustomTaggedPdfBuilder {
 
         addRoot(0);
 
-        addImagesToPage();
+        drawVaSeal(pdf, 0);
+        addAndTagWatermarkToPage();
 
     }
 
@@ -186,7 +187,7 @@ public class CustomTaggedPdfBuilder {
 
 
         addPage();
-        addImagesToPage();
+        addAndTagWatermarkToPage();
 
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
@@ -547,7 +548,7 @@ public class CustomTaggedPdfBuilder {
                 pageIndex += 1;
                 y = pageMargins.getTopMargin();
                 rowIndexStart = i;
-                addImagesToPage();
+                addAndTagWatermarkToPage();
             }
 
             Row currentRow = table.getRows().get(i);
@@ -767,8 +768,7 @@ public class CustomTaggedPdfBuilder {
         pdf.addPage(pages.get(pages.size() - 1));
     }
 
-    private void addImagesToPage() {
-        drawVaSeal(pdf, pages.size() - 1);
+    private void addAndTagWatermarkToPage() {
         PDPageContentStream contentStream = drawStandardWatermark(pages.size() - 1);
         appendArtifactToPage(contentStream, pages.size() - 1);
     }
@@ -823,7 +823,10 @@ public class CustomTaggedPdfBuilder {
         contents.endMarkedContent();
         contents.close();
 
-        PDStructureElement currentElem = appendToTagTree(StandardStructureTypes.Figure, pdfDocument.getPage(pageNumber), rootElem);
+        PDStructureElement divElem = appendToTagTree(StandardStructureTypes.DIV, pdfDocument.getPage(pageNumber), rootElem);
+        PDStructureElement pElem = appendToTagTree(StandardStructureTypes.P, pdfDocument.getPage(pageNumber), divElem);
+
+        PDStructureElement currentElem = appendToTagTree(StandardStructureTypes.Figure, pdfDocument.getPage(pageNumber), pElem);
         currentElem.setAlternateDescription(altText);
         currentMarkedContentDictionary.setString(COSName.ALT, altText);
 
