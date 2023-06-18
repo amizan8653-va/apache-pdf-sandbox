@@ -270,98 +270,10 @@ public class CustomTaggedPdfBuilder {
 
                 listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
             String line = wrappedLines.get(i);
             PDStructureElement currentElem = listTextTagElement;
 
-
-
-            Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
-            if (matcher.find()) {
-                //get the MatchResult Object
-                MatchResult regexMatch = matcher.toMatchResult();
-
-                String beforeLinkText = line.substring(0, regexMatch.start());
-                float beforeLinkTextWidth = getStringWidth(text, beforeLinkText);
-                String linkText = matcher.group();
-                float linkTextWidth = getStringWidth(text, linkText);
-                String afterLinkText = line.substring(regexMatch.end());
-
-                // prefix before the link
-                contents.setNonStrokingColor(text.getTextColor());
-                contents.showText(beforeLinkText);
-                appendToTagTree(pages.get(pageIndex), currentElem);
-
-                // segment tags
-                contents.endMarkedContent();
-                setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
-                // actual link
-                var linkElem = appendToTagTree(StandardStructureTypes.LINK, pages.get(pageIndex), currentElem);
-                contents.setNonStrokingColor(Color.blue);
-                contents.newLineAtOffset(beforeLinkTextWidth, 0);
-                contents.showText(linkText);
-
-                // link annotation creation and tagging
-                appendToLinkAnnotationToLinkTag(
-                        linkText,
-                        linkElem,
-                        x + this.pageMargins.getLeftMargin() + beforeLinkTextWidth,
-                        invertedYAxisOffset,
-                        linkTextWidth,
-                        text.getFontSize());
-
-
-                // segment tags
-                appendToTagTree(pages.get(pageIndex), linkElem);
-                contents.endMarkedContent();
-                setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
-                // postfix after the link
-                contents.setNonStrokingColor(text.getTextColor());
-                contents.newLineAtOffset(linkTextWidth, 0);
-                contents.showText(afterLinkText);
-                appendToTagTree(pages.get(pageIndex), currentElem);
-
-                // segment text
-                contents.endMarkedContent();
-                setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
-
-                contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), lineOffset);
-            } else {
-                contents.showText(line);
-                contents.newLineAtOffset(0, lineOffset);
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            drawLineThatMightHaveLink(text, contents, pageIndex, line, currentElem, x, invertedYAxisOffset, lineOffset);
 
         }
         contents.endText();
@@ -418,7 +330,7 @@ public class CustomTaggedPdfBuilder {
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
             }
 
-            lastLineIsLink = blah(text, contents, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
+            lastLineIsLink = drawLineThatMightHaveLink(text, contents, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
 
         }
         contents.endText();
@@ -478,7 +390,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private boolean blah(Text text, PDPageContentStream contents, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
+    private boolean drawLineThatMightHaveLink(Text text, PDPageContentStream contents, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
         Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
         if (matcher.find()) {
             //get the MatchResult Object
