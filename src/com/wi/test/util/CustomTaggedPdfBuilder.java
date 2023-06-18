@@ -393,6 +393,7 @@ public class CustomTaggedPdfBuilder {
 
     @SneakyThrows
     private boolean drawLineThatMightHaveLink(Text text, PDPageContentStream contents, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
+        boolean linkWasInserted;
         Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
         if (matcher.find()) {
             //get the MatchResult Object
@@ -449,12 +450,13 @@ public class CustomTaggedPdfBuilder {
             contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
             contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
-            return true;
+            linkWasInserted = true;
         } else {
             contents.showText(line);
             contents.newLineAtOffset(0, newOffset);
-            return false;
+            linkWasInserted = false;
         }
+        return linkWasInserted;
     }
 
 
