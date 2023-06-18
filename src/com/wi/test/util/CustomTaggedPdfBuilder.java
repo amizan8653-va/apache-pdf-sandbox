@@ -151,13 +151,8 @@ public class CustomTaggedPdfBuilder {
 
     @SneakyThrows
     public UpdatedPagePosition drawBulletList(List<Text> items, float x, float y, int pageIndex, PDStructureElement parent) {
-
-        Font font =  items.get(0).getFont();
-        PDFont pdFont = getPDFont(font);
-        float fontSize =  items.get(0).getFontSize();
-
         final var prefix = "\u2022 ";
-        final float prefixWidth = pdFont.getStringWidth(prefix) / 1000.0f * fontSize;
+        final float prefixWidth = getStringWidth(items.get(0), prefix);
         final var lineLimit = PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin() - prefixWidth;
 
         List<List<String>> wrappedListItems =  items.stream()
@@ -217,14 +212,15 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private UpdatedPagePosition drawBulletListItem(String prefix, Text text, List<String> wrappedLines, float x, float y, int pageIndex, PDStructureElement listItemParent, float spaceBetweenListItems){
-
-        // compute prefix width
+    private float getStringWidth(final Text text, final String stringToFindWidthFor){
         Font font =  text.getFont();
         PDFont pdFont = getPDFont(font);
         float fontSize =  text.getFontSize();
-        final float prefixWidth = pdFont.getStringWidth(prefix) / 1000.0f * fontSize;
+        return pdFont.getStringWidth(stringToFindWidthFor) / 1000.0f * fontSize;
+    }
 
+    @SneakyThrows
+    private UpdatedPagePosition drawBulletListItem(String prefix, Text text, List<String> wrappedLines, float x, float y, int pageIndex, PDStructureElement listItemParent, float spaceBetweenListItems){
         float invertedYAxisOffset = PAGE_HEIGHT - y;
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
@@ -260,6 +256,7 @@ public class CustomTaggedPdfBuilder {
                 var bulletTagElement = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
                 contents.showText(prefix);
 
+                final float prefixWidth = getStringWidth(text, prefix);
                 contents.newLineAtOffset(prefixWidth, 0);
 
                 appendToTagTree(pages.get(pageIndex), bulletTagElement);
@@ -272,7 +269,6 @@ public class CustomTaggedPdfBuilder {
                 contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
                 listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
-
             }
 
             String line = wrappedLines.get(i);
@@ -316,9 +312,6 @@ public class CustomTaggedPdfBuilder {
 
         PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
-        PDFont pdFont = getPDFont(text.getFont());
-        float fontSize =  text.getFontSize();
-
         //Open up a stream to draw text at a given location.
         contents.beginText();
         contents.setFont(getPDFont(text.getFont()), text.getFontSize());
@@ -326,10 +319,10 @@ public class CustomTaggedPdfBuilder {
         contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contents.setNonStrokingColor(text.getTextColor());
         boolean lastLineIsLink = false;
-        for (int i = 0; i < wrappedLines.size(); i++) {
+        for (String line : wrappedLines) {
             float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
-            if(invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
+            if (invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
                 var newPageVars = handlePageOverflow(contents, pageIndex, currentElem, text, x);
                 pageIndex = newPageVars.getNewPageIndex();
                 invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
@@ -337,17 +330,15 @@ public class CustomTaggedPdfBuilder {
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
             }
 
-            String line = wrappedLines.get(i);
-
             Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
-            if(matcher.find()) {
+            if (matcher.find()) {
                 //get the MatchResult Object
                 MatchResult regexMatch = matcher.toMatchResult();
 
                 String beforeLinkText = line.substring(0, regexMatch.start());
-                float beforeLinkTextWidth = pdFont.getStringWidth(beforeLinkText) / 1000.0f * fontSize;
+                float beforeLinkTextWidth = getStringWidth(text, beforeLinkText);
                 String linkText = matcher.group();
-                float linkTextWidth = pdFont.getStringWidth(linkText) / 1000.0f * fontSize;
+                float linkTextWidth = getStringWidth(text, linkText);
                 String afterLinkText = line.substring(regexMatch.end());
 
                 // prefix before the link
@@ -460,14 +451,12 @@ public class CustomTaggedPdfBuilder {
 
     @SneakyThrows
     private List<String> computeWrappedLines(Text text, float lineLimit) {
-        var font = getPDFont(text.getFont());
-        var fontSize = text.getFontSize();
         List<List<String>> linesOfWords = Stream.of(text.getText().split("\n"))
             .map(line -> List.of(line.split(" ")))
             .collect(Collectors.toList());
 
         List<String> wrappedLines = new ArrayList<>();
-        float spaceWidth  = font.getStringWidth(" ") / 1000.0f * fontSize;
+        float spaceWidth  = getStringWidth(text, " ");
         float currentLineWidth;
         int startingWordIndex;
         for (List<String> words : linesOfWords) {
@@ -476,7 +465,7 @@ public class CustomTaggedPdfBuilder {
             startingWordIndex = 0;
 
             for (int i = 0; i < words.size(); i++) {
-                float currentWordWidth = font.getStringWidth(words.get(i)) / 1000.0f * fontSize;
+                float currentWordWidth = getStringWidth(text, words.get(i));
                 currentLineWidth += currentWordWidth;
 
                 if (currentLineWidth > lineLimit) {
