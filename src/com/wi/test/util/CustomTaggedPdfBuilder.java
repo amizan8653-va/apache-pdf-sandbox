@@ -763,6 +763,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     private void addImagesToPage() {
+        drawVaSeal(pdf, pages.size() - 1);
         PDPageContentStream contentStream = drawStandardWatermark(pages.size() - 1);
         appendArtifactToPage(contentStream, pages.size() - 1);
     }
@@ -791,18 +792,50 @@ public class CustomTaggedPdfBuilder {
         var marginLeft = 1.75f / 8.25f * pdf.getPage(pageIndex).getMediaBox().getWidth();
         var width = 360;
         var height = 354;
-        return drawImage(watermarkBytes, "Watermark", pageIndex, marginTop, marginLeft, width, height);
+        return drawImage(watermarkBytes, COSName.ARTIFACT, "Watermark", pageIndex, marginTop, marginLeft, width, height);
     }
 
     @SneakyThrows
-    private PDPageContentStream drawImage(byte [] imageBytes, String imageName, int pageIndex, float marginTop, float marginLeft, int width, int height) {
+    void drawVaSeal(PDDocument pdfDocument, int pageNumber) {
+        var altText = "Veteran Affairs Seal";
+        var width = 92;
+        var height = 92;
+        var pageHeight = pdfDocument.getPage(0).getMediaBox().getHeight();
+        var marginTop = pageHeight - height - 0.52f / 11.7f * pageHeight;
+        var marginLeft = 0.52f / 8.25f * pdfDocument.getPage(0).getMediaBox().getWidth();
+        PDImageXObject pdImageXObject =
+                PDImageXObject.createFromByteArray(pdfDocument, vaSealBytes, "logo");
+        PDPage page = pdfDocument.getPage(pageNumber);
+
+        // Set up the next marked content element with an MCID and create the containing TD structure
+        // element.
+        PDPageContentStream contents = new PDPageContentStream(pdfDocument, page, PDPageContentStream.AppendMode.APPEND, true);
+
+        // Make the actual cell rectangle and set as artifact to avoid detection.
+        setNextMarkedContentDictionary();
+        contents.beginMarkedContent(COSName.IMAGE, PDPropertyList.create(currentMarkedContentDictionary));
+        contents.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
+        contents.endMarkedContent();
+        contents.close();
+
+        PDStructureElement currentElem = appendToTagTree(StandardStructureTypes.Figure, pdfDocument.getPage(pageNumber), rootElem);
+        currentElem.setAlternateDescription(altText);
+        currentMarkedContentDictionary.setString(COSName.ALT, altText);
+
+        PDMarkedContent markedImg = new PDMarkedContent(COSName.IMAGE, currentMarkedContentDictionary);
+        markedImg.addXObject(pdImageXObject);
+        currentElem.appendKid(markedImg);
+    }
+
+    @SneakyThrows
+    private PDPageContentStream drawImage(byte [] imageBytes, COSName cosName, String imageName, int pageIndex, float marginTop, float marginLeft, int width, int height) {
         PDImageXObject pdImageXObject =
                 PDImageXObject.createFromByteArray(pdf, imageBytes, imageName);
         PDPage page = pdf.getPage(pageIndex);
         PDPageContentStream cos =
                 new PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true);
         setNextMarkedContentDictionary();
-        cos.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
+        cos.beginMarkedContent(cosName, PDPropertyList.create(currentMarkedContentDictionary));
         cos.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
         return cos;
     }
