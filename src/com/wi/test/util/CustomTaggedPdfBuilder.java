@@ -99,6 +99,9 @@ public class CustomTaggedPdfBuilder {
 
     private static final String VA_LOGO_FILENAME = "va_seal.jpg";
 
+    // struct parent is an index for annotations, and we are using link annotations.
+    private int currentStructParent = 1;
+
     private byte[] watermarkBytes;
 
     /** The proof of service card water mark bytes. */
@@ -379,6 +382,15 @@ public class CustomTaggedPdfBuilder {
         position.setUpperRightY(y + 2.5f * height);
         linkAnnotation.setRectangle(position);
 
+        linkAnnotation.getCOSObject().setItem(COSName.F, COSInteger.get(4));
+
+        // not sure if this is even needed really
+        linkAnnotation.getCOSObject().setInt(COSName.STRUCT_PARENT, currentStructParent);
+        currentStructParent++;
+
+        linkAnnotation.setPage(pdf.getPage(pageIndex));
+
+
         // todo: go and  figure out how to tag this annotation.
         // This line will add a link to your page, but it will be an untagged annotation failing commonlook.
         // Wrapping this annotation in an object reference that wraps around the annotation, and then adding it as a
@@ -388,7 +400,6 @@ public class CustomTaggedPdfBuilder {
 
         PDObjectReference objectReference = new PDObjectReference();
         objectReference.setReferencedObject(linkAnnotation);
-        linkAnnotation.setContents(hyperLinkOrPhoneNumber);
         linkElem.appendKid(objectReference);
     }
 
@@ -777,11 +788,34 @@ public class CustomTaggedPdfBuilder {
     private void addParentTree() {
         COSDictionary dict = new COSDictionary();
         nums.add(numDictionaries);
+//        for (int i = 1; i < currentStructParent; i++) {
+//            nums.add(COSInteger.get(i));
+//            nums.add(annotDicts.get(i - 1));
+//        }
         dict.setItem(COSName.NUMS, nums);
         PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
+        pdf.getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(currentStructParent);
         pdf.getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
     }
+
+//    private void addWidgetContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
+//        COSDictionary annotDict = new COSDictionary();
+//        COSArray annotArray = new COSArray();
+//        annotArray.add(COSInteger.get(currentMCID));
+//        annotArray.add(objectReference);
+//        annotDict.setItem(COSName.K, annotArray);
+//        annotDict.setString(COSName.LANG, "EN-US");
+//        annotDict.setItem(COSName.P, currentElem.getCOSObject());
+//        annotDict.setItem(COSName.PG, pages.get(pageIndex).getCOSObject());
+//        annotDict.setName(COSName.S, type);
+//        annotDicts.add(annotDict);
+//
+//        setNextMarkedContentDictionary();
+//        numDictionaries.add(annotDict);
+//        fieldElem.appendKid(objectReference);
+//        currentElem.appendKid(fieldElem);
+//    }
 
     @SneakyThrows
     public static byte[] readBinaryFile(final String filePath) {
