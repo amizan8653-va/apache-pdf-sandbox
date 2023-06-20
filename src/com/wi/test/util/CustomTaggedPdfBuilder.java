@@ -19,10 +19,7 @@ import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.*;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDTableAttributeObject;
@@ -46,6 +43,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -74,8 +72,6 @@ public class CustomTaggedPdfBuilder {
     public final float PAGE_WIDTH = PDRectangle.LETTER.getWidth();
 
     private final PageMargins pageMargins;
-
-    private int currentMCID = 0;
     private PDStructureElement rootElem;
     private COSDictionary currentMarkedContentDictionary;
 
@@ -99,7 +95,7 @@ public class CustomTaggedPdfBuilder {
 
     private static final String VA_LOGO_FILENAME = "va_seal.jpg";
 
-    // struct parent is an index for annotations, and we are using link annotations.
+    private int currentMCID = 0;
     private int currentStructParent = 1;
 
     private byte[] watermarkBytes;
@@ -356,6 +352,7 @@ public class CustomTaggedPdfBuilder {
     private void appendToLinkAnnotationToLinkTag(int pageIndex, String hyperLinkOrPhoneNumber, PDStructureElement linkElem, float x, float y, float width, float height) {
         // the question & this answer https://stackoverflow.com/a/21163795/4832515 were the basis for this code
         PDAnnotationLink linkAnnotation = new PDAnnotationLink();
+        linkAnnotation.setReadOnly(true);
         linkAnnotation.setHighlightMode(HIGHLIGHT_MODE_NONE);
         PDBorderStyleDictionary borderULine = new PDBorderStyleDictionary();
         borderULine.setStyle(PDBorderStyleDictionary.STYLE_UNDERLINE);
@@ -383,13 +380,14 @@ public class CustomTaggedPdfBuilder {
         position.setUpperRightY(y + 2.5f * height);
         linkAnnotation.setRectangle(position);
 
-        linkAnnotation.getCOSObject().setItem(COSName.F, COSInteger.get(4));
-
         // not sure if this is even needed really
         linkAnnotation.getCOSObject().setInt(COSName.STRUCT_PARENT, currentStructParent);
         currentStructParent++;
 
         linkAnnotation.setPage(pdf.getPage(pageIndex));
+
+        linkAnnotation.setStructParent(currentStructParent);
+
 
 
         // todo: go and  figure out how to tag this annotation.
@@ -402,6 +400,7 @@ public class CustomTaggedPdfBuilder {
         PDObjectReference objectReference = new PDObjectReference();
         objectReference.setReferencedObject(linkAnnotation);
         linkElem.appendKid(objectReference);
+        linkAnnotation.getCOSObject().setString(COSName.ALT, hyperLinkOrPhoneNumber);
     }
 
     @SneakyThrows
@@ -591,7 +590,7 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-    //Adds a SECT structure element as the structure tree root.
+    //Adds a DOCUMENT structure element as the structure tree root.
     public void addRoot(int pageIndex) {
         rootElem = new PDStructureElement(StandardStructureTypes.DOCUMENT, null);
         rootElem.setTitle("PDF Document");
@@ -753,6 +752,22 @@ public class CustomTaggedPdfBuilder {
         documentCatalog.getCOSObject().setString(COSName.LANG, "EN-US");
         documentCatalog.getCOSObject().setName(COSName.PAGE_LAYOUT, "OneColumn");
         PDStructureTreeRoot structureTreeRoot = new PDStructureTreeRoot();
+        HashMap<String, String> roleMap = new HashMap<>();
+        roleMap.put("Annotation", "Span");
+        roleMap.put("Artifact", "P");
+        roleMap.put("Bibliography", "BibEntry");
+        roleMap.put("Chart", "Figure");
+        roleMap.put("Diagram", "Figure");
+        roleMap.put("DropCap", "Figure");
+        roleMap.put("EndNote", "Note");
+        roleMap.put("FootNote", "Note");
+        roleMap.put("InlineShape", "Figure");
+        roleMap.put("Outline", "Span");
+        roleMap.put("Strikeout", "Span");
+        roleMap.put("Subscript", "Span");
+        roleMap.put("Superscript", "Span");
+        roleMap.put("Underline", "Span");
+        structureTreeRoot.setRoleMap(roleMap);
         documentCatalog.setStructureTreeRoot(structureTreeRoot);
         PDMarkInfo markInfo = new PDMarkInfo();
         markInfo.setMarked(true);
