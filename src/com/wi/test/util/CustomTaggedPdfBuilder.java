@@ -314,7 +314,6 @@ public class CustomTaggedPdfBuilder {
         float invertedYAxisOffset = PAGE_HEIGHT - y;
         contentStream.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
         contentStream.setNonStrokingColor(text.getTextColor());
-        boolean lastLineIsLink = false;
         for (String line : wrappedLines) {
             float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
@@ -326,18 +325,16 @@ public class CustomTaggedPdfBuilder {
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
             }
 
-            lastLineIsLink = drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
+            drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
 
         }
         contentStream.endText();
 
 
         //End the marked content and append it's P structure element to the containing P structure element.
-        if(!lastLineIsLink) {
-            System.out.println("about to end marked content.");
-            contentStream.endMarkedContent();
-            appendToTagTree(pages.get(pageIndex), currentElem);
-        }
+        System.out.println("about to end marked content.");
+        contentStream.endMarkedContent();
+        appendToTagTree(pages.get(pageIndex), currentElem);
 
         contentStream.close();
 
@@ -399,8 +396,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private boolean drawLineThatMightHaveLink(Text text, PDPageContentStream contentStream, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
-        boolean linkWasInserted;
+    private void drawLineThatMightHaveLink(Text text, PDPageContentStream contentStream, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
         Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
         if (matcher.find()) {
             //get the MatchResult Object
@@ -458,13 +454,10 @@ public class CustomTaggedPdfBuilder {
             contentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
             contentStream.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
-            linkWasInserted = true;
         } else {
             contentStream.showText(line);
             contentStream.newLineAtOffset(0, newOffset);
-            linkWasInserted = false;
         }
-        return linkWasInserted;
     }
 
 
