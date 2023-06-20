@@ -138,7 +138,7 @@ public class CustomTaggedPdfBuilder {
 
         addRoot(0);
 
-//        drawVaSeal(pdf, 0);
+        drawVaSeal(pdf, 0);
         addAndTagWatermarkToPage();
 
         nums.add(COSInteger.get(0));
@@ -381,13 +381,7 @@ public class CustomTaggedPdfBuilder {
 
         linkAnnotation.setPage(pdf.getPage(pageIndex));
 
-
-
-        // todo: go and  figure out how to tag this annotation.
-        // This line will add a link to your page, but it will be an untagged annotation failing commonlook.
-        // Wrapping this annotation in an object reference that wraps around the annotation, and then adding it as a
-        //     child node to the <LINK> tag doesn't seem to tag it.
-        // If you simply skip this line, then the link annotation will not be painted onto the PDF at all.
+        // This line will add a link to your page
         pdf.getPage(pageIndex).getAnnotations().add(linkAnnotation);
 
         PDObjectReference objectReference = new PDObjectReference();
@@ -858,10 +852,7 @@ public class CustomTaggedPdfBuilder {
         contentStream.beginMarkedContent(COSName.IMAGE, PDPropertyList.create(currentMarkedContentDictionary));
         contentStream.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
 
-        PDStructureElement divElem = appendToTagTree(StandardStructureTypes.DIV, pdfDocument.getPage(pageNumber), rootElem);
-        PDStructureElement pElem = appendToTagTree(StandardStructureTypes.P, pdfDocument.getPage(pageNumber), divElem);
-
-        PDStructureElement currentElem = appendToTagTree(StandardStructureTypes.Figure, pdfDocument.getPage(pageNumber), pElem);
+        PDStructureElement currentElem = appendToTagTree(StandardStructureTypes.Figure, pdfDocument.getPage(pageNumber), rootElem);
         // values taken from the raw internal structure of the benefits summary PDF:
         //     14 0 obj
         //     <</A<</BBox[36 737 105 806]/Height 69/O/Layout/Width 69>>/Alt(Veteran Affairs Seal)/K 1/P 13 0 R/Pg 6 0 R/S/Figure/Type/StructElem>>
