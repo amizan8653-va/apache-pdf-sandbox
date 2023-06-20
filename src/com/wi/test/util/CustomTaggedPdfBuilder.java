@@ -138,7 +138,7 @@ public class CustomTaggedPdfBuilder {
 
         addRoot(0);
 
-        drawVaSeal(pdf, 0);
+//        drawVaSeal(pdf, 0);
         addAndTagWatermarkToPage();
 
         nums.add(COSInteger.get(0));
@@ -334,6 +334,7 @@ public class CustomTaggedPdfBuilder {
 
         //End the marked content and append it's P structure element to the containing P structure element.
         if(!lastLineIsLink) {
+            System.out.println("about to end marked content.");
             contentStream.endMarkedContent();
             appendToTagTree(pages.get(pageIndex), currentElem);
         }
@@ -863,8 +864,6 @@ public class CustomTaggedPdfBuilder {
         setNextMarkedContentDictionary();
         contentStream.beginMarkedContent(COSName.IMAGE, PDPropertyList.create(currentMarkedContentDictionary));
         contentStream.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
-        contentStream.endMarkedContent();
-        contentStream.close();
 
         PDStructureElement divElem = appendToTagTree(StandardStructureTypes.DIV, pdfDocument.getPage(pageNumber), rootElem);
         PDStructureElement pElem = appendToTagTree(StandardStructureTypes.P, pdfDocument.getPage(pageNumber), divElem);
@@ -883,6 +882,8 @@ public class CustomTaggedPdfBuilder {
         PDMarkedContent markedImg = new PDMarkedContent(COSName.IMAGE, currentMarkedContentDictionary);
         markedImg.addXObject(pdImageXObject);
         currentElem.appendKid(markedImg);
+        contentStream.endMarkedContent();
+        contentStream.close();
     }
 
     @SneakyThrows
