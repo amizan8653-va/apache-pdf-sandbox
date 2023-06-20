@@ -58,11 +58,6 @@ import lombok.SneakyThrows;
 import static org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink.HIGHLIGHT_MODE_NONE;
 
 public class CustomTaggedPdfBuilder {
-
-    // create accessible letter PDFs
-    // note: about link tags: https://accessible-digital-documents.com/blog/accessible-pdf-links/
-    // note: tags accepted for PDF/UA-1: https://www.pubcom.com/blog/2020_05-02_tags/pdf-ua-tags.shtml
-
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
     private final PDFont helveticaFont;
@@ -76,13 +71,11 @@ public class CustomTaggedPdfBuilder {
     private PDStructureElement rootElem;
     private COSDictionary currentMarkedContentDictionary;
 
-    // variables for adding additional pages and text wrapping
     private final PDResources resources;
     private final COSArray cosArrayForAdditionalPages;
     private final COSArray boxArray;
 
     // will match urls such as "www.healthcare.gov" or "https://www.va.gov/health-care/about-affordable-care-act"
-
     private final String URL_REGEX = "(http|www)[^\\s]*[a-zA-Z0-9]";
     private final String PHONE_NUMBER_REGEX = "(1-)?\\d{3}-\\d{3}-\\d{4}";
     private final String URL_OR_PHONE_NUMBER_REGEX = String.format("(%s|%s)", URL_REGEX, PHONE_NUMBER_REGEX);
@@ -99,11 +92,9 @@ public class CustomTaggedPdfBuilder {
     private int currentMCID = 0;
     private int currentStructParent = 1;
 
-    private ArrayList<COSDictionary> annotDicts = new ArrayList<>();
+    private final ArrayList<COSDictionary> annotDicts = new ArrayList<>();
 
     private byte[] watermarkBytes;
-
-    /** The proof of service card water mark bytes. */
     private byte[] cardWatermarkBytes;
 
     private byte [] vaSealBytes;
@@ -141,7 +132,7 @@ public class CustomTaggedPdfBuilder {
         addXMPMetadata(title);
         setupDocumentCatalog();
 
-        // setup page 1 & ability at add more pages.
+        // setup page 1
         prePageOne();
         addPage();
 
@@ -403,7 +394,7 @@ public class CustomTaggedPdfBuilder {
 
         PDObjectReference objectReference = new PDObjectReference();
         objectReference.setReferencedObject(linkAnnotation);
-        addWidgetContent(objectReference, linkElem, StandardStructureTypes.LINK, pageIndex);
+        addLinkContent(objectReference, linkElem, StandardStructureTypes.LINK, pageIndex);
     }
 
     @SneakyThrows
@@ -612,19 +603,16 @@ public class CustomTaggedPdfBuilder {
 
 
     private PDStructureElement appendToTagTree(String structureType, PDPage currentPage, PDStructureElement parent){
-        // Create a structure element and add it to the current section.
-        // this is NOT marked content.
+        // Create a structure element and add it as a chile to the given parent structure element.
         PDStructureElement structureElement = new PDStructureElement(structureType, parent);
         structureElement.setPage(currentPage);
         parent.appendKid(structureElement);
-//        structureElement.getCOSObject().setItem(COSName.P, parent.getCOSObject()); // probably should be just parent.
         structureElement.setParent(parent);
         return structureElement;
     }
 
     @SneakyThrows
     private void appendArtifactToPage(PDPageContentStream contentStream, int pageIndex){
-        //numDict for parent tree
         COSDictionary numDict = new COSDictionary();
         numDict.setInt(COSName.K, currentMCID - 1);
         numDict.setString(COSName.LANG, "EN-US");
@@ -782,7 +770,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     private void prePageOne(){
-        //Create document initial pages
+        //Create document initial page
         cosArrayForAdditionalPages.add(COSName.getPDFName("PDF"));
         cosArrayForAdditionalPages.add(COSName.getPDFName("Text"));
         boxArray.add(new COSFloat(0.0f));
@@ -822,14 +810,13 @@ public class CustomTaggedPdfBuilder {
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
     }
 
-    private void addWidgetContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
+    private void addLinkContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
         COSDictionary annotDict = new COSDictionary();
         COSArray annotArray = new COSArray();
         annotArray.add(COSInteger.get(currentMCID));
         annotArray.add(objectReference);
         annotDict.setItem(COSName.K, annotArray);
         annotDict.setString(COSName.LANG, "EN-US");
-//        annotDict.setItem(COSName.P, currentElem.getCOSObject()); // this was originally some artifact containing field element?
         annotDict.setItem(COSName.P, fieldElem.getCOSObject());
         annotDict.setItem(COSName.PG, pages.get(pageIndex).getCOSObject());
         annotDict.setName(COSName.S, type);
@@ -838,7 +825,6 @@ public class CustomTaggedPdfBuilder {
         setNextMarkedContentDictionary();
         numDictionaries.add(annotDict);
         fieldElem.appendKid(objectReference);
-//        currentElem.appendKid(fieldElem);
     }
 
     @SneakyThrows
@@ -870,8 +856,7 @@ public class CustomTaggedPdfBuilder {
                 PDImageXObject.createFromByteArray(pdfDocument, vaSealBytes, "logo");
         PDPage page = pdfDocument.getPage(pageNumber);
 
-        // Set up the next marked content element with an MCID and create the containing TD structure
-        // element.
+        // Set up the next marked content element with an MCID and create the containing TD structure element.
         PDPageContentStream contentStream = new PDPageContentStream(pdfDocument, page, PDPageContentStream.AppendMode.APPEND, true);
 
         // Make the actual cell rectangle and set as artifact to avoid detection.
