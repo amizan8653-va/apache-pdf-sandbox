@@ -98,6 +98,8 @@ public class CustomTaggedPdfBuilder {
     private int currentMCID = 0;
     private int currentStructParent = 1;
 
+    private ArrayList<COSDictionary> annotDicts = new ArrayList<>();
+
     private byte[] watermarkBytes;
 
     /** The proof of service card water mark bytes. */
@@ -146,6 +148,8 @@ public class CustomTaggedPdfBuilder {
 
         drawVaSeal(pdf, 0);
         addAndTagWatermarkToPage();
+
+        nums.add(COSInteger.get(0));
 
     }
 
@@ -359,6 +363,7 @@ public class CustomTaggedPdfBuilder {
         linkAnnotation.setBorderStyle(borderULine);
         float [] blue =  {0.0f, 0.0f, 1.0f};
         linkAnnotation.setColor(new PDColor(blue, PDDeviceRGB.INSTANCE));
+        linkAnnotation.setContents(hyperLinkOrPhoneNumber);
 
         Matcher matcher = PHONE_NUMBER_PATTERN.matcher(hyperLinkOrPhoneNumber);
         var action = new PDActionURI();
@@ -381,12 +386,10 @@ public class CustomTaggedPdfBuilder {
         linkAnnotation.setRectangle(position);
 
         // not sure if this is even needed really
-        linkAnnotation.getCOSObject().setInt(COSName.STRUCT_PARENT, currentStructParent);
+        linkAnnotation.setStructParent(currentStructParent);
         currentStructParent++;
 
         linkAnnotation.setPage(pdf.getPage(pageIndex));
-
-        linkAnnotation.setStructParent(currentStructParent);
 
 
 
@@ -399,8 +402,7 @@ public class CustomTaggedPdfBuilder {
 
         PDObjectReference objectReference = new PDObjectReference();
         objectReference.setReferencedObject(linkAnnotation);
-        linkElem.appendKid(objectReference);
-        linkAnnotation.getCOSObject().setString(COSName.ALT, hyperLinkOrPhoneNumber);
+        addWidgetContent(objectReference, linkElem, StandardStructureTypes.LINK, pageIndex);
     }
 
     @SneakyThrows
@@ -432,6 +434,7 @@ public class CustomTaggedPdfBuilder {
             contents.setNonStrokingColor(Color.blue);
             contents.newLineAtOffset(beforeLinkTextWidth, 0);
             contents.showText(linkText);
+            linkElem.setAlternateDescription(linkText);
 
             // link annotation creation and tagging
             appendToLinkAnnotationToLinkTag(
@@ -613,6 +616,8 @@ public class CustomTaggedPdfBuilder {
         PDStructureElement structureElement = new PDStructureElement(structureType, parent);
         structureElement.setPage(currentPage);
         parent.appendKid(structureElement);
+//        structureElement.getCOSObject().setItem(COSName.P, parent.getCOSObject()); // probably should be just parent.
+        structureElement.setParent(parent);
         return structureElement;
     }
 
@@ -804,10 +809,10 @@ public class CustomTaggedPdfBuilder {
     private void addParentTree() {
         COSDictionary dict = new COSDictionary();
         nums.add(numDictionaries);
-//        for (int i = 1; i < currentStructParent; i++) {
-//            nums.add(COSInteger.get(i));
-//            nums.add(annotDicts.get(i - 1));
-//        }
+        for (int i = 1; i < currentStructParent; i++) {
+            nums.add(COSInteger.get(i));
+            nums.add(annotDicts.get(i - 1));
+        }
         dict.setItem(COSName.NUMS, nums);
         PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
         pdf.getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(currentStructParent);
@@ -815,23 +820,24 @@ public class CustomTaggedPdfBuilder {
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
     }
 
-//    private void addWidgetContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
-//        COSDictionary annotDict = new COSDictionary();
-//        COSArray annotArray = new COSArray();
-//        annotArray.add(COSInteger.get(currentMCID));
-//        annotArray.add(objectReference);
-//        annotDict.setItem(COSName.K, annotArray);
-//        annotDict.setString(COSName.LANG, "EN-US");
-//        annotDict.setItem(COSName.P, currentElem.getCOSObject());
-//        annotDict.setItem(COSName.PG, pages.get(pageIndex).getCOSObject());
-//        annotDict.setName(COSName.S, type);
-//        annotDicts.add(annotDict);
-//
-//        setNextMarkedContentDictionary();
-//        numDictionaries.add(annotDict);
-//        fieldElem.appendKid(objectReference);
+    private void addWidgetContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
+        COSDictionary annotDict = new COSDictionary();
+        COSArray annotArray = new COSArray();
+        annotArray.add(COSInteger.get(currentMCID));
+        annotArray.add(objectReference);
+        annotDict.setItem(COSName.K, annotArray);
+        annotDict.setString(COSName.LANG, "EN-US");
+//        annotDict.setItem(COSName.P, currentElem.getCOSObject()); // this was originally some artifact containing field element?
+        annotDict.setItem(COSName.P, fieldElem.getCOSObject());
+        annotDict.setItem(COSName.PG, pages.get(pageIndex).getCOSObject());
+        annotDict.setName(COSName.S, type);
+        annotDicts.add(annotDict);
+
+        setNextMarkedContentDictionary();
+        numDictionaries.add(annotDict);
+        fieldElem.appendKid(objectReference);
 //        currentElem.appendKid(fieldElem);
-//    }
+    }
 
     @SneakyThrows
     public static byte[] readBinaryFile(final String filePath) {
