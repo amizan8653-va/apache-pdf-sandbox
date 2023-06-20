@@ -22,6 +22,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.*;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
+import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDLayoutAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDTableAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -884,6 +885,12 @@ public class CustomTaggedPdfBuilder {
         PDStructureElement pElem = appendToTagTree(StandardStructureTypes.P, pdfDocument.getPage(pageNumber), divElem);
 
         PDStructureElement currentElem = appendToTagTree(StandardStructureTypes.Figure, pdfDocument.getPage(pageNumber), pElem);
+        // values taken from the raw internal structure of the benefits summary PDF:
+        //     14 0 obj
+        //     <</A<</BBox[36 737 105 806]/Height 69/O/Layout/Width 69>>/Alt(Veteran Affairs Seal)/K 1/P 13 0 R/Pg 6 0 R/S/Figure/Type/StructElem>>
+        //     endobj
+        var layout = new PDLayoutAttributeObject();
+        layout.setBBox(new PDRectangle(36, 737, 105, 806));
         currentElem.setAlternateDescription(altText);
         currentMarkedContentDictionary.setString(COSName.ALT, altText);
 
