@@ -228,16 +228,16 @@ public class CustomTaggedPdfBuilder {
         float invertedYAxisOffset = PAGE_HEIGHT - y;
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
-        PDPageContentStream contents = new PDPageContentStream(
+        PDPageContentStream contentStream = new PDPageContentStream(
             pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+        contentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
         //Open up a stream to draw text at a given location.
-        contents.beginText();
-        contents.setFont(getPDFont(text.getFont()), text.getFontSize());
-        contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
-        contents.setNonStrokingColor(text.getTextColor());
+        contentStream.beginText();
+        contentStream.setFont(getPDFont(text.getFont()), text.getFontSize());
+        contentStream.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+        contentStream.setNonStrokingColor(text.getTextColor());
         PDStructureElement listTextTagElement = null;
 
         float lineOffset = -text.getFontSize() - spaceBetweenListItems;
@@ -247,10 +247,10 @@ public class CustomTaggedPdfBuilder {
         // If so, add the unit to the current page. If not, add a new page before adding the unit.
         // This assumes that a single bullet item on a list will *not* be longer than an entire page.
         if( (invertedYAxisOffset + lineOffset * wrappedLines.size()) <= this.pageMargins.getBottomMargin()) {
-            var newPageVars = handlePageOverflow(contents, pageIndex, listItemParent, text, x);
+            var newPageVars = handlePageOverflow(contentStream, pageIndex, listItemParent, text, x);
             pageIndex = newPageVars.getNewPageIndex();
             invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
-            contents = newPageVars.getNewContent();
+            contentStream = newPageVars.getNewContent();
         }
 
         final float prefixWidth = getStringWidth(text, prefix);
@@ -259,33 +259,33 @@ public class CustomTaggedPdfBuilder {
             invertedYAxisOffset += lineOffset;
             if(i == 0) {
                 var bulletTagElement = appendToTagTree(StandardStructureTypes.LBL, pages.get(pageIndex), listItemParent);
-                contents.showText(prefix);
+                contentStream.showText(prefix);
 
-                contents.newLineAtOffset(prefixWidth, 0);
+                contentStream.newLineAtOffset(prefixWidth, 0);
 
                 appendToTagTree(pages.get(pageIndex), bulletTagElement);
 
                 // make the bullet point be tagged in just <LBL>, and the text right after separately in <LBODY>
-                contents.endMarkedContent();
+                contentStream.endMarkedContent();
 
                 // tag the list element's text body
                 setNextMarkedContentDictionary();
-                contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+                contentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
                 listTextTagElement = appendToTagTree(StandardStructureTypes.L_BODY, pages.get(pageIndex), listItemParent);
             }
             String line = wrappedLines.get(i);
             PDStructureElement currentElem = listTextTagElement;
 
-            drawLineThatMightHaveLink(text, contents, pageIndex, line, currentElem, x + prefixWidth, invertedYAxisOffset, lineOffset);
+            drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x + prefixWidth, invertedYAxisOffset, lineOffset);
 
         }
-        contents.endText();
+        contentStream.endText();
         appendToTagTree(pages.get(pageIndex), listTextTagElement);
 
         //End the marked content and append it's P structure element to the containing P structure element.
-        contents.endMarkedContent();
-        contents.close();
+        contentStream.endMarkedContent();
+        contentStream.close();
 
         return new UpdatedPagePosition(PAGE_HEIGHT - invertedYAxisOffset, pageIndex);
 
@@ -309,44 +309,44 @@ public class CustomTaggedPdfBuilder {
     private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines){
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
-        PDPageContentStream contents = new PDPageContentStream(
+        PDPageContentStream contentStream = new PDPageContentStream(
             pdf, pages.get(pageIndex), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+        contentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
         PDStructureElement currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
 
         //Open up a stream to draw text at a given location.
-        contents.beginText();
-        contents.setFont(getPDFont(text.getFont()), text.getFontSize());
+        contentStream.beginText();
+        contentStream.setFont(getPDFont(text.getFont()), text.getFontSize());
         float invertedYAxisOffset = PAGE_HEIGHT - y;
-        contents.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
-        contents.setNonStrokingColor(text.getTextColor());
+        contentStream.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+        contentStream.setNonStrokingColor(text.getTextColor());
         boolean lastLineIsLink = false;
         for (String line : wrappedLines) {
             float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
             if (invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
-                var newPageVars = handlePageOverflow(contents, pageIndex, currentElem, text, x);
+                var newPageVars = handlePageOverflow(contentStream, pageIndex, currentElem, text, x);
                 pageIndex = newPageVars.getNewPageIndex();
                 invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
-                contents = newPageVars.getNewContent();
+                contentStream = newPageVars.getNewContent();
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
             }
 
-            lastLineIsLink = drawLineThatMightHaveLink(text, contents, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
+            lastLineIsLink = drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
 
         }
-        contents.endText();
+        contentStream.endText();
 
 
         //End the marked content and append it's P structure element to the containing P structure element.
         if(!lastLineIsLink) {
-            contents.endMarkedContent();
+            contentStream.endMarkedContent();
             appendToTagTree(pages.get(pageIndex), currentElem);
         }
 
-        contents.close();
+        contentStream.close();
 
         return new UpdatedPagePosition(PAGE_HEIGHT - invertedYAxisOffset, pageIndex);
 
@@ -406,7 +406,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private boolean drawLineThatMightHaveLink(Text text, PDPageContentStream contents, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
+    private boolean drawLineThatMightHaveLink(Text text, PDPageContentStream contentStream, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
         boolean linkWasInserted;
         Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
         if (matcher.find()) {
@@ -420,20 +420,20 @@ public class CustomTaggedPdfBuilder {
             String afterLinkText = line.substring(regexMatch.end());
 
             // prefix before the link
-            contents.setNonStrokingColor(text.getTextColor());
-            contents.showText(beforeLinkText);
+            contentStream.setNonStrokingColor(text.getTextColor());
+            contentStream.showText(beforeLinkText);
             appendToTagTree(pages.get(pageIndex), currentElem);
 
             // segment tags
-            contents.endMarkedContent();
+            contentStream.endMarkedContent();
             setNextMarkedContentDictionary();
-            contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+            contentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
             // actual link
             var linkElem = appendToTagTree(StandardStructureTypes.LINK, pages.get(pageIndex), currentElem);
-            contents.setNonStrokingColor(Color.blue);
-            contents.newLineAtOffset(beforeLinkTextWidth, 0);
-            contents.showText(linkText);
+            contentStream.setNonStrokingColor(Color.blue);
+            contentStream.newLineAtOffset(beforeLinkTextWidth, 0);
+            contentStream.showText(linkText);
             linkElem.setAlternateDescription(linkText);
 
             // link annotation creation and tagging
@@ -449,26 +449,26 @@ public class CustomTaggedPdfBuilder {
 
             // segment tags
             appendToTagTree(pages.get(pageIndex), linkElem);
-            contents.endMarkedContent();
+            contentStream.endMarkedContent();
             setNextMarkedContentDictionary();
-            contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+            contentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
             // postfix after the link
-            contents.setNonStrokingColor(text.getTextColor());
-            contents.newLineAtOffset(linkTextWidth, 0);
-            contents.showText(afterLinkText);
+            contentStream.setNonStrokingColor(text.getTextColor());
+            contentStream.newLineAtOffset(linkTextWidth, 0);
+            contentStream.showText(afterLinkText);
             appendToTagTree(pages.get(pageIndex), currentElem);
 
             // segment text
-            contents.endMarkedContent();
+            contentStream.endMarkedContent();
             setNextMarkedContentDictionary();
-            contents.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
+            contentStream.beginMarkedContent(COSName.P, PDPropertyList.create(currentMarkedContentDictionary));
 
-            contents.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
+            contentStream.newLineAtOffset(-(beforeLinkTextWidth + linkTextWidth), newOffset);
             linkWasInserted = true;
         } else {
-            contents.showText(line);
-            contents.newLineAtOffset(0, newOffset);
+            contentStream.showText(line);
+            contentStream.newLineAtOffset(0, newOffset);
             linkWasInserted = false;
         }
         return linkWasInserted;
@@ -711,6 +711,7 @@ public class CustomTaggedPdfBuilder {
     private void setNextMarkedContentDictionary() {
         currentMarkedContentDictionary = new COSDictionary();
         currentMarkedContentDictionary.setInt(COSName.MCID, currentMCID);
+        System.out.println(currentMCID);
         currentMCID++;
     }
 
@@ -870,14 +871,14 @@ public class CustomTaggedPdfBuilder {
 
         // Set up the next marked content element with an MCID and create the containing TD structure
         // element.
-        PDPageContentStream contents = new PDPageContentStream(pdfDocument, page, PDPageContentStream.AppendMode.APPEND, true);
+        PDPageContentStream contentStream = new PDPageContentStream(pdfDocument, page, PDPageContentStream.AppendMode.APPEND, true);
 
         // Make the actual cell rectangle and set as artifact to avoid detection.
         setNextMarkedContentDictionary();
-        contents.beginMarkedContent(COSName.IMAGE, PDPropertyList.create(currentMarkedContentDictionary));
-        contents.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
-        contents.endMarkedContent();
-        contents.close();
+        contentStream.beginMarkedContent(COSName.IMAGE, PDPropertyList.create(currentMarkedContentDictionary));
+        contentStream.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
+        contentStream.endMarkedContent();
+        contentStream.close();
 
         PDStructureElement divElem = appendToTagTree(StandardStructureTypes.DIV, pdfDocument.getPage(pageNumber), rootElem);
         PDStructureElement pElem = appendToTagTree(StandardStructureTypes.P, pdfDocument.getPage(pageNumber), divElem);
@@ -896,12 +897,12 @@ public class CustomTaggedPdfBuilder {
         PDImageXObject pdImageXObject =
                 PDImageXObject.createFromByteArray(pdf, imageBytes, imageName);
         PDPage page = pdf.getPage(pageIndex);
-        PDPageContentStream cos =
+        PDPageContentStream contentStream =
                 new PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true);
         setNextMarkedContentDictionary();
-        cos.beginMarkedContent(cosName, PDPropertyList.create(currentMarkedContentDictionary));
-        cos.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
-        return cos;
+        contentStream.beginMarkedContent(cosName, PDPropertyList.create(currentMarkedContentDictionary));
+        contentStream.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
+        return contentStream;
     }
 
     public PDStructureElement getRoot() {
