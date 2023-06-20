@@ -394,7 +394,7 @@ public class CustomTaggedPdfBuilder {
 
         PDObjectReference objectReference = new PDObjectReference();
         objectReference.setReferencedObject(linkAnnotation);
-        addLinkContent(objectReference, linkElem, StandardStructureTypes.LINK, pageIndex);
+        addAnnotationContent(objectReference, linkElem, StandardStructureTypes.LINK, pageIndex);
     }
 
     @SneakyThrows
@@ -810,21 +810,21 @@ public class CustomTaggedPdfBuilder {
         pdf.getDocumentCatalog().getStructureTreeRoot().appendKid(rootElem);
     }
 
-    private void addLinkContent(PDObjectReference objectReference, PDStructureElement fieldElem, String type, int pageIndex) {
+    private void addAnnotationContent(PDObjectReference objectReference, PDStructureElement annotationContainerElement, String type, int pageIndex) {
         COSDictionary annotDict = new COSDictionary();
         COSArray annotArray = new COSArray();
         annotArray.add(COSInteger.get(currentMCID));
         annotArray.add(objectReference);
         annotDict.setItem(COSName.K, annotArray);
         annotDict.setString(COSName.LANG, "EN-US");
-        annotDict.setItem(COSName.P, fieldElem.getCOSObject());
+        annotDict.setItem(COSName.P, annotationContainerElement.getCOSObject());
         annotDict.setItem(COSName.PG, pages.get(pageIndex).getCOSObject());
         annotDict.setName(COSName.S, type);
         annotDicts.add(annotDict);
 
         setNextMarkedContentDictionary();
         numDictionaries.add(annotDict);
-        fieldElem.appendKid(objectReference);
+        annotationContainerElement.appendKid(objectReference);
     }
 
     @SneakyThrows
@@ -874,8 +874,9 @@ public class CustomTaggedPdfBuilder {
         //     14 0 obj
         //     <</A<</BBox[36 737 105 806]/Height 69/O/Layout/Width 69>>/Alt(Veteran Affairs Seal)/K 1/P 13 0 R/Pg 6 0 R/S/Figure/Type/StructElem>>
         //     endobj
-        var layout = new PDLayoutAttributeObject();
-        layout.setBBox(new PDRectangle(36, 737, 105, 806));
+        var layoutAttribute = new PDLayoutAttributeObject();
+        layoutAttribute.setBBox(new PDRectangle(36, 737, 105, 806));
+        currentElem.addAttribute(layoutAttribute);
         currentElem.setAlternateDescription(altText);
         currentMarkedContentDictionary.setString(COSName.ALT, altText);
 
