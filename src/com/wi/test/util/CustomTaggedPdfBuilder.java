@@ -589,6 +589,15 @@ public class CustomTaggedPdfBuilder {
         pdf.close();
     }
 
+    private PDStructureElement appendToTagTree(COSDictionary cosDictionary, PDPage currentPage, PDStructureElement parent){
+        // Create a structure element and add it as a chile to the given parent structure element.
+        PDStructureElement structureElement = new PDStructureElement(cosDictionary);
+        structureElement.setPage(currentPage);
+        parent.appendKid(structureElement);
+        structureElement.setParent(parent);
+        return structureElement;
+    }
+
 
     private PDStructureElement appendToTagTree(String structureType, PDPage currentPage, PDStructureElement parent){
         // Create a structure element and add it as a chile to the given parent structure element.
@@ -852,7 +861,13 @@ public class CustomTaggedPdfBuilder {
         contentStream.beginMarkedContent(COSName.IMAGE, PDPropertyList.create(currentMarkedContentDictionary));
         contentStream.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
 
-        PDStructureElement currentElem = appendToTagTree(StandardStructureTypes.Figure, pdfDocument.getPage(pageNumber), rootElem);
+
+        COSDictionary figureCosDict = new COSDictionary();
+        figureCosDict.setName(COSName.S, StandardStructureTypes.Figure);
+        figureCosDict.setItem(COSName.P, rootElem);
+        figureCosDict.setName(COSName.TYPE, "StructElem");
+
+        PDStructureElement currentElem = appendToTagTree(figureCosDict, pdfDocument.getPage(pageNumber), rootElem);
         // values taken from the raw internal structure of the benefits summary PDF:
         //     14 0 obj
         //     <</A<</BBox[36 737 105 806]/Height 69/O/Layout/Width 69>>/Alt(Veteran Affairs Seal)/K 1/P 13 0 R/Pg 6 0 R/S/Figure/Type/StructElem>>
