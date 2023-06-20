@@ -365,6 +365,7 @@ public class CustomTaggedPdfBuilder {
 
         Matcher matcher = PHONE_NUMBER_PATTERN.matcher(hyperLinkOrPhoneNumber);
         var action = new PDActionURI();
+        action.setTrackMousePosition(false);
         if(matcher.find()) {
             // this is a phone number, stick 'tel:' as a prefix to denote that.
             hyperLinkOrPhoneNumber = "tel:" + hyperLinkOrPhoneNumber;
@@ -592,7 +593,7 @@ public class CustomTaggedPdfBuilder {
 
     //Adds a SECT structure element as the structure tree root.
     public void addRoot(int pageIndex) {
-        rootElem = new PDStructureElement(StandardStructureTypes.SECT, null);
+        rootElem = new PDStructureElement(StandardStructureTypes.DOCUMENT, null);
         rootElem.setTitle("PDF Document");
         rootElem.setPage(pages.get(pageIndex));
         rootElem.setLanguage("EN-US");
