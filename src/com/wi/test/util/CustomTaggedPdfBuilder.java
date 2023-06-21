@@ -10,7 +10,11 @@ import com.wi.test.pojo.PageMargins;
 import com.wi.test.pojo.Row;
 import com.wi.test.pojo.Text;
 import com.wi.test.pojo.UpdatedPagePosition;
-import org.apache.pdfbox.cos.*;
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSFloat;
+import org.apache.pdfbox.cos.COSInteger;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -19,7 +23,10 @@ import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.*;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDLayoutAttributeObject;
@@ -40,7 +47,7 @@ import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.XMPSchema;
 import org.apache.xmpbox.xml.XmpSerializer;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -52,9 +59,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
 import lombok.SneakyThrows;
-
 import static org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink.HIGHLIGHT_MODE_NONE;
 
 public class CustomTaggedPdfBuilder {
@@ -878,9 +883,9 @@ public class CustomTaggedPdfBuilder {
         currentElem.setAlternateDescription(altText);
         currentMarkedContentDictionary.setString(COSName.ALT, altText);
 
-        PDMarkedContent markedImg = new PDMarkedContent(COSName.IMAGE, currentMarkedContentDictionary);
-        markedImg.addXObject(pdImageXObject);
-        currentElem.appendKid(markedImg);
+//        PDMarkedContent markedImg = new PDMarkedContent(COSName.IMAGE, currentMarkedContentDictionary);
+//        markedImg.addXObject(pdImageXObject);
+//        currentElem.appendKid(markedImg);
         contentStream.endMarkedContent();
         contentStream.close();
     }
