@@ -143,7 +143,7 @@ public class CustomTaggedPdfBuilder {
 
         addRoot(0);
 
-        drawVaSeal(pdf, 0);
+//        drawVaSeal(pdf, 0);
         addAndTagWatermarkToPage();
 
         nums.add(COSInteger.get(0));
@@ -328,6 +328,7 @@ public class CustomTaggedPdfBuilder {
                 invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
                 contentStream = newPageVars.getNewContent();
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
+                System.out.println("handled page overflow in draw simple text");
             }
 
             drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
@@ -338,8 +339,8 @@ public class CustomTaggedPdfBuilder {
 
         //End the marked content and append it's P structure element to the containing P structure element.
         System.out.println("about to end marked content.");
-        contentStream.endMarkedContent();
         appendToTagTree(pages.get(pageIndex), currentElem);
+        contentStream.endMarkedContent();
 
         contentStream.close();
 
@@ -398,6 +399,7 @@ public class CustomTaggedPdfBuilder {
     private void drawLineThatMightHaveLink(Text text, PDPageContentStream contentStream, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
         Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
         if (matcher.find()) {
+            System.out.println("link or phone number found");
             //get the MatchResult Object
             MatchResult regexMatch = matcher.toMatchResult();
 
@@ -609,7 +611,6 @@ public class CustomTaggedPdfBuilder {
         PDStructureElement structureElement = new PDStructureElement(structureType, parent);
         structureElement.setPage(currentPage);
         parent.appendKid(structureElement);
-        structureElement.setParent(parent);
         return structureElement;
     }
 
@@ -629,16 +630,18 @@ public class CustomTaggedPdfBuilder {
     }
 
     private void appendToTagTree(PDPage currentPage, PDStructureElement parent){
+        COSName parentCosName = COSName.getPDFName(parent.getStructureType());
+
         COSDictionary numDict = new COSDictionary();
         numDict.setInt(COSName.K, currentMCID - 1);
         numDict.setString(COSName.LANG, "EN-US");
         numDict.setItem(COSName.PG, currentPage.getCOSObject());
 
-        PDMarkedContent markedContent = new PDMarkedContent(COSName.P, currentMarkedContentDictionary);
+        PDMarkedContent markedContent = new PDMarkedContent(parentCosName, currentMarkedContentDictionary);
         parent.appendKid(markedContent);
         numDict.setItem(COSName.P, parent.getCOSObject());
 
-        numDict.setName(COSName.S, COSName.P.getName());
+        numDict.setName(COSName.S, parentCosName.getName());
         numDictionaries.add(numDict);
     }
 
@@ -702,7 +705,6 @@ public class CustomTaggedPdfBuilder {
     private void setNextMarkedContentDictionary() {
         currentMarkedContentDictionary = new COSDictionary();
         currentMarkedContentDictionary.setInt(COSName.MCID, currentMCID);
-        System.out.println(currentMCID);
         currentMCID++;
     }
 
@@ -747,7 +749,6 @@ public class CustomTaggedPdfBuilder {
         documentCatalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
         documentCatalog.getViewerPreferences().setDisplayDocTitle(true);
         documentCatalog.getCOSObject().setString(COSName.LANG, "EN-US");
-        documentCatalog.getCOSObject().setName(COSName.PAGE_LAYOUT, "OneColumn");
         PDStructureTreeRoot structureTreeRoot = new PDStructureTreeRoot();
         HashMap<String, String> roleMap = new HashMap<>();
         roleMap.put("Annotation", "Span");

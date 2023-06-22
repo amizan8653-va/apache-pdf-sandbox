@@ -39,13 +39,13 @@ public class Main {
         String phoneNumber = "1-800-827-1000";
 
         CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,0,20,20));
-        PDStructureElement sec1 = formBuilder.getRoot();
+        PDStructureElement rootElement = formBuilder.getRoot();
 
         formBuilder.drawTextElement(
             new Text(14, "PDF HEADER 1",Color.BLUE.darker().darker(), Font.HELVETICA_BOLD),
-            0, 0, sec1, StandardStructureTypes.H1, 0);
+            0, 0, rootElement, StandardStructureTypes.H1, 0);
 
-        UpdatedPagePosition newPosition = drawTableOne(formBuilder, sec1);
+        UpdatedPagePosition newPosition = drawTableOne(formBuilder, rootElement);
 
 
         //Hard coded table2
@@ -86,7 +86,7 @@ public class Main {
                 "Goodbye.",
                 Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
             new Cell("System Verification: N/A.", Font.HELVETICA, 10, 75, PDConstants.TOP_ALIGN, false))));
-        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 50.0f, newPosition.getPageIndex(), sec1, 5);
+        newPosition = formBuilder.drawTable(table2, 50, newPosition.getY() + 50.0f, newPosition.getPageIndex(), rootElement, 5);
 
 
         newPosition = formBuilder.drawTextElement(
@@ -96,7 +96,7 @@ public class Main {
                     .collect(Collectors.joining()),
                 Color.BLACK,
                 Font.HELVETICA),
-            0, newPosition.getY() + 450, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
+            0, newPosition.getY() + 450, rootElement, StandardStructureTypes.P, newPosition.getPageIndex());
 
         List<Text> bulletedList = Stream.of(
             "test item 1",
@@ -111,10 +111,10 @@ public class Main {
             .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
             .collect(Collectors.toList());
         // test extra x padding, and also test page overflow halfway through bullet point.
-        newPosition = formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 665.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawBulletList(bulletedList, 10, newPosition.getY() + 665.0f, newPosition.getPageIndex(), rootElement);
 
         // test no extra x padding, and also test page overflow at start of new bullet point.
-        newPosition = formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 600.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawBulletList(bulletedList, 0, newPosition.getY() + 600.0f, newPosition.getPageIndex(), rootElement);
 
         newPosition = formBuilder.drawTextElement(
             new Text(12,
@@ -125,7 +125,7 @@ public class Main {
                             .collect(Collectors.joining()),
                 Color.BLACK,
                 Font.HELVETICA),
-            0, newPosition.getY() + 20, sec1, StandardStructureTypes.P, newPosition.getPageIndex());
+            0, newPosition.getY() + 20, rootElement, StandardStructureTypes.P, newPosition.getPageIndex());
 
 
         List<Text> bulletedListWithLinks = Stream.of(
@@ -143,7 +143,7 @@ public class Main {
                 .map(str -> new Text(12, str, Color.BLACK, Font.HELVETICA))
                 .collect(Collectors.toList());
 
-        newPosition = formBuilder.drawBulletList(bulletedListWithLinks, 0, newPosition.getY() + 500.0f, newPosition.getPageIndex(), sec1);
+        newPosition = formBuilder.drawBulletList(bulletedListWithLinks, 0, newPosition.getY() + 500.0f, newPosition.getPageIndex(), rootElement);
 
         formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
