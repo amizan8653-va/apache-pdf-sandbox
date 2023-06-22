@@ -143,7 +143,7 @@ public class CustomTaggedPdfBuilder {
 
         addRoot(0);
 
-//        drawVaSeal(pdf, 0);
+        drawVaSeal(pdf, 0);
         addAndTagWatermarkToPage();
 
         nums.add(COSInteger.get(0));
@@ -629,7 +629,7 @@ public class CustomTaggedPdfBuilder {
 
     }
 
-    private void appendToTagTree(PDPage currentPage, PDStructureElement parent){
+    private PDMarkedContent appendToTagTree(PDPage currentPage, PDStructureElement parent){
         COSName parentCosName = COSName.getPDFName(parent.getStructureType());
 
         COSDictionary numDict = new COSDictionary();
@@ -643,6 +643,7 @@ public class CustomTaggedPdfBuilder {
 
         numDict.setName(COSName.S, parentCosName.getName());
         numDictionaries.add(numDict);
+        return markedContent;
     }
 
 
@@ -864,7 +865,7 @@ public class CustomTaggedPdfBuilder {
 
         // Make the actual cell rectangle and set as artifact to avoid detection.
         setNextMarkedContentDictionary();
-        contentStream.beginMarkedContent(COSName.IMAGE, PDPropertyList.create(currentMarkedContentDictionary));
+        contentStream.beginMarkedContent(COSName.getPDFName("Figure"), PDPropertyList.create(currentMarkedContentDictionary));
         contentStream.drawImage(pdImageXObject, marginLeft, marginTop, width, height);
 
 
@@ -884,9 +885,9 @@ public class CustomTaggedPdfBuilder {
         currentElem.setAlternateDescription(altText);
         currentMarkedContentDictionary.setString(COSName.ALT, altText);
 
-//        PDMarkedContent markedImg = new PDMarkedContent(COSName.IMAGE, currentMarkedContentDictionary);
-//        markedImg.addXObject(pdImageXObject);
-//        currentElem.appendKid(markedImg);
+
+        PDMarkedContent markedImg = appendToTagTree(page, currentElem);
+        markedImg.addXObject(pdImageXObject);
         contentStream.endMarkedContent();
         contentStream.close();
     }
