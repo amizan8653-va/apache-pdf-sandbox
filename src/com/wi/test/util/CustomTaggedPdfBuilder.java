@@ -49,10 +49,7 @@ import org.apache.xmpbox.xml.XmpSerializer;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,6 +59,8 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import static org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink.HIGHLIGHT_MODE_NONE;
 
+// todo: when drawing only tagged text, and no images nor artifact footer text.. inconsistent struct tree entries are found
+//       make sure to investigate why & fix when you can.
 public class CustomTaggedPdfBuilder {
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
@@ -103,6 +102,8 @@ public class CustomTaggedPdfBuilder {
     private byte[] cardWatermarkBytes;
 
     private byte [] vaSealBytes;
+
+    private Text footerText = new Text(12, UUID.randomUUID().toString(),Color.BLACK, Font.HELVETICA);
 
     public void loadExternalImageBytes() {
         watermarkBytes = CustomTaggedPdfBuilder.readBinaryFile(WATERMARK_PATH_FILENAME);
@@ -783,6 +784,7 @@ public class CustomTaggedPdfBuilder {
         boxArray.add(new COSFloat(792.0f));
     }
     private void addPage(){
+        maybeAppendArtifactFooter();
         PDPage page = new PDPage(PDRectangle.LETTER);
         page.getCOSObject().setItem(COSName.getPDFName("Tabs"), COSName.S);
         page.setResources(resources);
@@ -793,6 +795,36 @@ public class CustomTaggedPdfBuilder {
         pages.add(page);
         pdf.addPage(pages.get(pages.size() - 1));
     }
+
+    // todo: find out why this causes "inconsistent entry found" in PAC checker tool.
+    @SneakyThrows
+    private void maybeAppendArtifactFooter() {
+        if(pdf.getPages().getCount() == 0){
+            // first page... there's no previous page to append a footer to. abort.
+            return;
+        }
+
+        float x = 12;
+        float invertedYAxisOffset = 15;
+        PDPageContentStream contentStream = new PDPageContentStream(
+                pdf, pages.get(pages.size() - 1), PDPageContentStream.AppendMode.APPEND, false);
+        setNextMarkedContentDictionary();
+        contentStream.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
+
+        //Open up a stream to draw text at a given location.
+        contentStream.beginText();
+        contentStream.setFont(getPDFont(footerText.getFont()), footerText.getFontSize());
+        contentStream.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+        contentStream.setNonStrokingColor(footerText.getTextColor());
+        contentStream.showText(footerText.getText());
+        contentStream.endText();
+
+        appendToTagTree(pages.get(pages.size() - 1), rootElem);
+        contentStream.endMarkedContent();
+
+        contentStream.close();
+    }
+
 
     private void addAndTagWatermarkToPage() {
         PDPageContentStream contentStream = drawStandardWatermark(pages.size() - 1);
@@ -848,6 +880,7 @@ public class CustomTaggedPdfBuilder {
         return drawImage(watermarkBytes, COSName.ARTIFACT, "Watermark", pageIndex, marginTop, marginLeft, width, height);
     }
 
+    // todo:  find out  why this causes "inconsistent entry found" in PAC checker tool.
     @SneakyThrows
     void drawVaSeal(PDDocument pdfDocument, int pageNumber) {
         var altText = "Veteran Affairs Seal";
@@ -875,12 +908,14 @@ public class CustomTaggedPdfBuilder {
         figureCosDict.setName(COSName.TYPE, "StructElem");
 
         PDStructureElement currentElem = appendToTagTree(figureCosDict, pdfDocument.getPage(pageNumber), rootElem);
-        // values taken from the raw internal structure of the benefits summary PDF:
+        // bounding box values taken from the raw internal structure of the benefits summary PDF:
         //     14 0 obj
         //     <</A<</BBox[36 737 105 806]/Height 69/O/Layout/Width 69>>/Alt(Veteran Affairs Seal)/K 1/P 13 0 R/Pg 6 0 R/S/Figure/Type/StructElem>>
         //     endobj
         var layoutAttribute = new PDLayoutAttributeObject();
         layoutAttribute.setBBox(new PDRectangle(36, 737, 105, 806));
+        // todo: find out why adding this layout attribute causes "Object reference not set to an instance of an object"
+        //       Maybe this has something to do with adding something to the struct parent tree?
         currentElem.addAttribute(layoutAttribute);
         currentElem.setAlternateDescription(altText);
         currentMarkedContentDictionary.setString(COSName.ALT, altText);
