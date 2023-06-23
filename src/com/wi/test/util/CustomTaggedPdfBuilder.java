@@ -799,11 +799,10 @@ public class CustomTaggedPdfBuilder {
         appendArtifactFooterToPreviousPage();
     }
 
-    // todo: find out why this causes "inconsistent entry found" in PAC checker tool.
     @SneakyThrows
     private void appendArtifactFooterToPreviousPage() {
         if(pages.size() < 2){
-            // first page... there's no previous page to append a footer to. abort.
+            // don't start appending until there are at least 2 pages. Append to previous page.
             return;
         }
 
@@ -820,7 +819,6 @@ public class CustomTaggedPdfBuilder {
         contentStream.showText(footerText.getText());
         contentStream.endText();
 
-//        appendToTagTree(pages.get(pages.size() - 2), rootElem);
         appendArtifactToPage(contentStream, pages.size() - 2);
     }
 
