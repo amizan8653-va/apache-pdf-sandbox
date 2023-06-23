@@ -43,7 +43,7 @@ public class Main {
 
         formBuilder.drawTextElement(
             new Text(14, "PDF HEADER 1",Color.BLUE.darker().darker(), Font.HELVETICA_BOLD),
-            0, 0, rootElement, StandardStructureTypes.H1, 0);
+            0, 0, rootElement, StandardStructureTypes.H1, 0, false);
 
         UpdatedPagePosition newPosition = drawTableOne(formBuilder, rootElement);
 
@@ -96,7 +96,8 @@ public class Main {
                     .collect(Collectors.joining()),
                 Color.BLACK,
                 Font.HELVETICA),
-            0, newPosition.getY() + 450, rootElement, StandardStructureTypes.P, newPosition.getPageIndex());
+            0, newPosition.getY() + 450, rootElement, StandardStructureTypes.P, newPosition.getPageIndex(),
+            true);
 
         List<Text> bulletedList = Stream.of(
             "test item 1",
@@ -125,7 +126,8 @@ public class Main {
                             .collect(Collectors.joining()),
                 Color.BLACK,
                 Font.HELVETICA),
-            0, newPosition.getY() + 20, rootElement, StandardStructureTypes.P, newPosition.getPageIndex());
+            0, newPosition.getY() + 20, rootElement, StandardStructureTypes.P, newPosition.getPageIndex(),
+            true);
 
 
         List<Text> bulletedListWithLinks = Stream.of(

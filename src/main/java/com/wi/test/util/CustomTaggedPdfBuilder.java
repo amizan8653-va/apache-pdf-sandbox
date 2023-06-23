@@ -61,6 +61,9 @@ import static org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink.
 
 // todo: when drawing only tagged text, and no images nor artifact footer text.. inconsistent struct tree entries are found
 //       make sure to investigate why & fix when you can.
+// todo: when using apple voice over, if list or  table gets split by page, then the 2nd part of list/table will
+//       not be detected.
+// todo: when using applie voice over, links seem like they're ignored after the first link.
 public class CustomTaggedPdfBuilder {
     private final PDDocument pdf;
     private final ArrayList<PDPage> pages = new ArrayList<>();
@@ -297,18 +300,14 @@ public class CustomTaggedPdfBuilder {
 
     @SneakyThrows
     public UpdatedPagePosition drawTextElement(Text text, float x, float y, PDStructureElement parent,
-                                              String structType, int pageIndex) {
+                                              String structType, int pageIndex, boolean allowNewPages) {
 
         List<String> wrappedLines = computeWrappedLines(text, PAGE_WIDTH - pageMargins.getLeftMargin() - pageMargins.getRightMargin());
 
         y = y + this.pageMargins.getTopMargin();
 
         //Draws the given texts
-        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, 5, true);
-    }
-
-    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines, boolean checkForLink){
-        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, spaceBetweenLines, checkForLink, true);
+        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, 5, true, allowNewPages);
     }
 
     // Add text at a given location starting from the top-left corner.
@@ -676,7 +675,9 @@ public class CustomTaggedPdfBuilder {
     }
 
     private UpdatedPagePosition drawCellContents(int pageIndex, List<String> wrappedLines, Row currentRow, PDStructureElement cellStructureElement, Cell currentCell, float cellX, float cellY, float spaceBetweenLines) {
-        //Draw the cell's text with a given alignment, and tag it.
+        // Draw the cell's text with a given alignment, and tag it.
+        // note: ensure that there is enough room in the page *before* calling this method.
+        //       if there isn't, make a new page and *then* call this method, drawing at the top.
         return switch (currentCell.getAlign()) {
             case PDConstants.CENTER_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + currentCell.getWidth() / 2.0f - currentCell.getFontSize() / 3.75f * currentCell.getText().length(),
@@ -685,6 +686,7 @@ public class CustomTaggedPdfBuilder {
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
                 spaceBetweenLines,
+                false,
                 false);
             case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
@@ -693,6 +695,7 @@ public class CustomTaggedPdfBuilder {
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
                 spaceBetweenLines,
+                false,
                 false);
             case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
@@ -701,6 +704,7 @@ public class CustomTaggedPdfBuilder {
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
                 spaceBetweenLines,
+                false,
                 false);
             default -> throw new RuntimeException("invalid text justification used.");
         };
@@ -830,7 +834,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     public void addFinalTaggedFooter(){
-        drawSimpleText(footerText, List.of(footerText.getText()), footerX, PAGE_HEIGHT - footerInvertedY, pdf.getNumberOfPages() - 1, StandardStructureTypes.SPAN, rootElem, 1.0f, false);
+        drawSimpleText(footerText, List.of(footerText.getText()), footerX, PAGE_HEIGHT - footerInvertedY, pdf.getNumberOfPages() - 1, StandardStructureTypes.SPAN, rootElem, 1.0f, false, false);
     }
 
 
