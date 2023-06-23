@@ -7,11 +7,14 @@ import java.awt.Color;
 
 @Getter
 public class Text {
-    protected final float fontSize;
-
+    protected float fontSize;
     protected final String text;
     protected final Color textColor;
     protected final Font font;
+
+    public void setFontSize(float fontSize){
+        this.fontSize = fontSize;
+    }
 
     public Text(float fontSize, String text, Color textColor, Font font) {
         this.fontSize = fontSize;

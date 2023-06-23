@@ -38,7 +38,7 @@ public class Main {
 
         String phoneNumber = "1-800-827-1000";
 
-        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,0,20,20));
+        CustomTaggedPdfBuilder formBuilder = new CustomTaggedPdfBuilder("UA EXAMPLE", new PageMargins(20,0,20,20), 5, 7, 12);
         PDStructureElement rootElement = formBuilder.getRoot();
 
         formBuilder.drawTextElement(
@@ -145,7 +145,7 @@ public class Main {
 
         newPosition = formBuilder.drawBulletList(bulletedListWithLinks, 0, newPosition.getY() + 500.0f, newPosition.getPageIndex(), rootElement);
 
-//        formBuilder.addFinalTaggedFooter();
+        formBuilder.addFinalTaggedFooter();
 
         formBuilder.saveAndClose("UAEXAMPLE.PDF");
 

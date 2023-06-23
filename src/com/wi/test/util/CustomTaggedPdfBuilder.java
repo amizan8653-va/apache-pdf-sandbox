@@ -105,8 +105,8 @@ public class CustomTaggedPdfBuilder {
 
     // next 3 variables are related to drawing the footer.
     private Text footerText = new Text(12, UUID.randomUUID().toString(),Color.BLACK, Font.HELVETICA);
-    float footerX = 12;
-    float footerInvertedY = 5;
+    private final float footerX;
+    private final float footerInvertedY;
 
     public void loadExternalImageBytes() {
         watermarkBytes = CustomTaggedPdfBuilder.readBinaryFile(WATERMARK_PATH_FILENAME);
@@ -116,7 +116,10 @@ public class CustomTaggedPdfBuilder {
 
 
     @SneakyThrows
-    public CustomTaggedPdfBuilder(String title, PageMargins margins) {
+    public CustomTaggedPdfBuilder(String title, PageMargins margins, float footerX, float footerYFromBottom, float footerFontSize) {
+        this.footerX = footerX;
+        this.footerInvertedY = footerYFromBottom;
+        this.footerText.setFontSize(footerFontSize);
         loadExternalImageBytes();
 
         //Setup new document
@@ -304,10 +307,14 @@ public class CustomTaggedPdfBuilder {
         return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, 5);
     }
 
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines){
+        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, spaceBetweenLines, true);
+    }
+
     // Add text at a given location starting from the top-left corner.
     // this function is the core rendering logic shared by all.
     @SneakyThrows
-    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines){
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines, boolean allowNewPages){
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
         PDPageContentStream contentStream = new PDPageContentStream(
@@ -326,13 +333,12 @@ public class CustomTaggedPdfBuilder {
         for (String line : wrappedLines) {
             float newOffset = -text.getFontSize() - spaceBetweenLines;
             invertedYAxisOffset += newOffset;
-            if (invertedYAxisOffset <= this.pageMargins.getBottomMargin()) {
+            if (allowNewPages && (invertedYAxisOffset <= this.pageMargins.getBottomMargin())) {
                 var newPageVars = handlePageOverflow(contentStream, pageIndex, currentElem, text, x);
                 pageIndex = newPageVars.getNewPageIndex();
                 invertedYAxisOffset = newPageVars.getNewInvertedYAxisOffset();
                 contentStream = newPageVars.getNewContent();
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
-                System.out.println("handled page overflow in draw simple text");
             }
 
             drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
@@ -342,7 +348,6 @@ public class CustomTaggedPdfBuilder {
 
 
         //End the marked content and append it's P structure element to the containing P structure element.
-        System.out.println("about to end marked content.");
         appendToTagTree(pages.get(pageIndex), currentElem);
         contentStream.endMarkedContent();
 
@@ -403,7 +408,6 @@ public class CustomTaggedPdfBuilder {
     private void drawLineThatMightHaveLink(Text text, PDPageContentStream contentStream, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
         Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
         if (matcher.find()) {
-            System.out.println("link or phone number found");
             //get the MatchResult Object
             MatchResult regexMatch = matcher.toMatchResult();
 
@@ -823,7 +827,7 @@ public class CustomTaggedPdfBuilder {
     }
 
     public void addFinalTaggedFooter(){
-        drawSimpleText(footerText, List.of(footerText.getText()), footerX, PAGE_HEIGHT - footerInvertedY, pdf.getNumberOfPages() - 1, StandardStructureTypes.SPAN, rootElem, 0.0f);
+        drawSimpleText(footerText, List.of(footerText.getText()), footerX, PAGE_HEIGHT - footerInvertedY, pdf.getNumberOfPages() - 1, StandardStructureTypes.SPAN, rootElem, 1.0f, false);
     }
 
 
