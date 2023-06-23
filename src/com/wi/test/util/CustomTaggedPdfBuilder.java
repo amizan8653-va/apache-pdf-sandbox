@@ -281,7 +281,7 @@ public class CustomTaggedPdfBuilder {
             String line = wrappedLines.get(i);
             PDStructureElement currentElem = listTextTagElement;
 
-            drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x + prefixWidth, invertedYAxisOffset, lineOffset);
+            drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x + prefixWidth, invertedYAxisOffset, lineOffset, true);
 
         }
         contentStream.endText();
@@ -304,17 +304,17 @@ public class CustomTaggedPdfBuilder {
         y = y + this.pageMargins.getTopMargin();
 
         //Draws the given texts
-        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, 5);
+        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, 5, true);
     }
 
-    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines){
-        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, spaceBetweenLines, true);
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines, boolean checkForLink){
+        return drawSimpleText(text, wrappedLines, x, y, pageIndex, structType, parent, spaceBetweenLines, checkForLink, true);
     }
 
     // Add text at a given location starting from the top-left corner.
     // this function is the core rendering logic shared by all.
     @SneakyThrows
-    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines, boolean allowNewPages){
+    private UpdatedPagePosition drawSimpleText(Text text, List<String> wrappedLines, float x, float y, int pageIndex, String structType, PDStructureElement parent, float spaceBetweenLines, boolean checkForLink, boolean allowNewPages){
 
         //Set up the next marked content element with an MCID and create the containing P structure element.
         PDPageContentStream contentStream = new PDPageContentStream(
@@ -341,7 +341,7 @@ public class CustomTaggedPdfBuilder {
                 currentElem = appendToTagTree(structType, pages.get(pageIndex), parent);
             }
 
-            drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset);
+            drawLineThatMightHaveLink(text, contentStream, pageIndex, line, currentElem, x, invertedYAxisOffset, newOffset, checkForLink);
 
         }
         contentStream.endText();
@@ -405,9 +405,9 @@ public class CustomTaggedPdfBuilder {
     }
 
     @SneakyThrows
-    private void drawLineThatMightHaveLink(Text text, PDPageContentStream contentStream, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset){
+    private void drawLineThatMightHaveLink(Text text, PDPageContentStream contentStream, int pageIndex, String line, PDStructureElement currentElem, float x, float invertedYAxisOffset, float newOffset, boolean checkForLink){
         Matcher matcher = URL_OR_PHONE_NUMBER_PATTERN.matcher(line);
-        if (matcher.find()) {
+        if (checkForLink && matcher.find()) {
             //get the MatchResult Object
             MatchResult regexMatch = matcher.toMatchResult();
 
@@ -684,21 +684,24 @@ public class CustomTaggedPdfBuilder {
                 pageIndex,
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
-                spaceBetweenLines);
+                spaceBetweenLines,
+                false);
             case PDConstants.TOP_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentCell.getFontSize() / 4.0f + 5,
                 pageIndex,
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
-                spaceBetweenLines);
+                spaceBetweenLines,
+                false);
             case PDConstants.LEFT_ALIGN -> drawSimpleText(currentCell, wrappedLines,
                 cellX + 5,
                 cellY + currentRow.getHeight() / 2 + currentCell.getFontSize() / 4.0f,
                 pageIndex,
                 StandardStructureTypes.SPAN,
                 cellStructureElement,
-                spaceBetweenLines);
+                spaceBetweenLines,
+                false);
             default -> throw new RuntimeException("invalid text justification used.");
         };
     }

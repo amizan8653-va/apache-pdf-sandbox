@@ -57,7 +57,7 @@ public class Main {
         table2.addRow(new Row(Arrays.asList(
                 new Cell("Row \nHeader \n1", Font.HELVETICA, 10, 45, PDConstants.TOP_ALIGN, false),
                 new Cell("Hi. This is a long paragraph about absolutely nothing. I hope you enjoy reading it! \n" +
-                        "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
+                        urls.get(0) + "\n" +
                         "This is a long paragraph about absolutely nothing. I hope you enjoy reading it!\n" +
                         "Goodbye.",
                     Font.HELVETICA, 10, 215, PDConstants.TOP_ALIGN, false),
