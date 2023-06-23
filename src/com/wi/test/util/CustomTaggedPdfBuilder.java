@@ -103,7 +103,10 @@ public class CustomTaggedPdfBuilder {
 
     private byte [] vaSealBytes;
 
+    // next 3 variables are related to drawing the footer.
     private Text footerText = new Text(12, UUID.randomUUID().toString(),Color.BLACK, Font.HELVETICA);
+    float footerX = 12;
+    float footerInvertedY = 5;
 
     public void loadExternalImageBytes() {
         watermarkBytes = CustomTaggedPdfBuilder.readBinaryFile(WATERMARK_PATH_FILENAME);
@@ -784,7 +787,6 @@ public class CustomTaggedPdfBuilder {
         boxArray.add(new COSFloat(792.0f));
     }
     private void addPage(){
-        maybeAppendArtifactFooter();
         PDPage page = new PDPage(PDRectangle.LETTER);
         page.getCOSObject().setItem(COSName.getPDFName("Tabs"), COSName.S);
         page.setResources(resources);
@@ -794,35 +796,36 @@ public class CustomTaggedPdfBuilder {
         page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(0));
         pages.add(page);
         pdf.addPage(pages.get(pages.size() - 1));
+        appendArtifactFooterToPreviousPage();
     }
 
     // todo: find out why this causes "inconsistent entry found" in PAC checker tool.
     @SneakyThrows
-    private void maybeAppendArtifactFooter() {
-        if(pdf.getPages().getCount() == 0){
+    private void appendArtifactFooterToPreviousPage() {
+        if(pages.size() < 2){
             // first page... there's no previous page to append a footer to. abort.
             return;
         }
 
-        float x = 12;
-        float invertedYAxisOffset = 15;
         PDPageContentStream contentStream = new PDPageContentStream(
-                pdf, pages.get(pages.size() - 1), PDPageContentStream.AppendMode.APPEND, false);
+                pdf, pages.get(pages.size() - 2), PDPageContentStream.AppendMode.APPEND, false);
         setNextMarkedContentDictionary();
         contentStream.beginMarkedContent(COSName.ARTIFACT, PDPropertyList.create(currentMarkedContentDictionary));
 
         //Open up a stream to draw text at a given location.
         contentStream.beginText();
         contentStream.setFont(getPDFont(footerText.getFont()), footerText.getFontSize());
-        contentStream.newLineAtOffset(x + this.pageMargins.getLeftMargin(), invertedYAxisOffset);
+        contentStream.newLineAtOffset(footerX + this.pageMargins.getLeftMargin(), footerInvertedY);
         contentStream.setNonStrokingColor(footerText.getTextColor());
         contentStream.showText(footerText.getText());
         contentStream.endText();
 
-        appendToTagTree(pages.get(pages.size() - 1), rootElem);
-        contentStream.endMarkedContent();
+//        appendToTagTree(pages.get(pages.size() - 2), rootElem);
+        appendArtifactToPage(contentStream, pages.size() - 2);
+    }
 
-        contentStream.close();
+    public void addFinalTaggedFooter(){
+        drawSimpleText(footerText, List.of(footerText.getText()), footerX, PAGE_HEIGHT - footerInvertedY, pdf.getNumberOfPages() - 1, StandardStructureTypes.SPAN, rootElem, 0.0f);
     }
 
 

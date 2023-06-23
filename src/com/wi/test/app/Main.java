@@ -145,6 +145,8 @@ public class Main {
 
         newPosition = formBuilder.drawBulletList(bulletedListWithLinks, 0, newPosition.getY() + 500.0f, newPosition.getPageIndex(), rootElement);
 
+//        formBuilder.addFinalTaggedFooter();
+
         formBuilder.saveAndClose("UAEXAMPLE.PDF");
 
         System.out.println(dateFormat.format(new Date()));
